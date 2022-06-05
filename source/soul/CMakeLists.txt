@@ -27,7 +27,8 @@ set(SOUL_INCLUDE_DIRECTORIES
 	"${CMAKE_SOURCE_DIR}/third_party/glfw/include")
 
 set(SOUL_LINK_LIBRARIES
-	glfw)
+	glfw
+	bgfx)
 
 set(SOUL_COMPILE_DEFINITIONS)
 
