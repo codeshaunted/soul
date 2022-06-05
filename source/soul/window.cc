@@ -20,7 +20,8 @@
 #if defined(SOUL_IS_WINDOWS)
 #define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(SOUL_IS_LINUX)
-#define GLFW_EXPOSE_NATIVE_WAYLAND
+// #define GLFW_EXPOSE_NATIVE_WAYLAND
+#define GLFW_EXPOSE_NATIVE_X11
 #endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
 #include "GLFW/glfw3native.h"
 
@@ -80,7 +81,8 @@ tl::expected<WindowHandle, WindowError> Window::getHandle() {
 #if defined(SOUL_IS_WINDOWS)
 	handle = glfwGetWin32Window(this->window);
 #elif defined(SOUL_IS_LINUX)
-	handle = glfwGetWaylandWindow(this->window);
+	// handle = glfwGetWaylandWindow(this->window);
+	handle = (void*)glfwGetX11Window(this->window);
 #endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
 
 	if (SOUL_GLFW_GET_ERROR() == WindowError::SUCCESS) return handle;

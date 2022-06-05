@@ -30,6 +30,8 @@ int main(int argc, char** argv) {
 
 		if (handle) {
 			std::cout << *handle << std::endl;
+		} else {
+			std::cout << "unable to get native window handle! error: " << std::hex << (int)handle.error() << std::endl;
 		}
 	}
 	else {
