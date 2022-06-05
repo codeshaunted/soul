@@ -17,7 +17,8 @@
 
 set(SOUL_SOURCE_FILES
 	"${CMAKE_CURRENT_SOURCE_DIR}/main.cc"
-	"${CMAKE_CURRENT_SOURCE_DIR}/window.cc")
+	"${CMAKE_CURRENT_SOURCE_DIR}/window.cc"
+	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cc")
 
 set(SOUL_INCLUDE_DIRECTORIES
 	"${CMAKE_SOURCE_DIR}/include/soul"

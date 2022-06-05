@@ -32,6 +32,7 @@
 
 namespace soul {
 
+// undef these macros and replace them with our enum
 #undef GLFW_NOT_INITIALIZED
 #undef GLFW_NO_CURRENT_CONTEXT
 #undef GLFW_INVALID_ENUM
