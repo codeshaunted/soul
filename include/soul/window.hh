@@ -22,7 +22,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #elif defined(SOUL_IS_LINUX)
-#include "somewaylandshit.h" // todo: theo include whatever wl_surface is from here
+#include <wayland-client-protocol.h>
 #endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
 
 #include <string>
