@@ -105,18 +105,40 @@ bool TextEngine::can_insert(uint line, uint col) {
            col <= this->lines[line].text.length();
 }
 
+bool TextEngine::new_line_after(uint line) {
+    if (line > this->lines.size()) {
+        line = this->lines.size();
+    }
+    this->lines.insert(this->lines.begin() + line + 1, Line::create());
+    return true;
+}
+
 bool TextEngine::insert(uint line, uint col, char to_insert) {
     if (!this->can_insert(line, col)) {
         std::cerr << "cannot insert at " << line << ":" << col << "!" << std::endl;
         return false;
     }
-    if (iscntrl(to_insert)) {
+    if (to_insert == '\n') { // handle newline insertion
+        std::string& line_ref = this->lines[line].text;
+        if (col == line_ref.length()) {
+            // if we're at the end of a line, all we need to do is insert an empty line after this.
+            this->new_line_after(line);
+        } else {
+            std::string after = line_ref.substr(col);
+            // erase everything after the cursor...
+            line_ref.erase(col, std::string::npos);
+            // and put in on the next line.
+            this->lines.insert(this->lines.begin() + line + 1, Line::from(after));
+        }
+        return true;
+    } else if (iscntrl(to_insert)) { // don't allow any other control characters
         std::cerr << "cannot insert invalid character" << std::hex << to_insert << std::endl;
         return false;
+    } else { // if the character is anything else, insert it normally.
+        std::string& r = this->lines[line].text;
+        r.insert(r.begin() + col, to_insert);
+        return true;  
     }
-    std::string& r = this->lines[line].text;
-    r.insert(r.begin() + col, to_insert);
-    return true;
 }
 
 

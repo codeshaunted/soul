@@ -45,6 +45,14 @@ int main(int argc, char** argv) {
 
 		std::cout << "after delete_range: " << std::endl << engine.to_string() << std::endl;
 
+		engine.insert(2,0,'\n');
+
+		std::cout << "after newline insert: " << std::endl << engine.to_string() << std::endl;
+
+		engine.insert(3,2,'\n');
+
+		std::cout << "after newline insert 2: " << std::endl << engine.to_string() << std::endl;
+
 		auto lines_view = *engine.get_lines(0, engine.num_lines()-1);
 		for (auto line : lines_view) {
 			std::cout << line.length() << " ";

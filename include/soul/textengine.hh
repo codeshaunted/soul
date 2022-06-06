@@ -41,6 +41,7 @@ public:
     uint num_lines();
     bool can_insert(uint line, uint col);
     // return true if succeeded, otherwise false.
+    bool new_line_after(uint line);
     bool insert(uint line, uint col, char to_insert);
     bool insert_str(uint line, uint col, std::string_view str);
     bool delete_char(uint line, uint col);
