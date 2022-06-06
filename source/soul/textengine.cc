@@ -122,7 +122,7 @@ bool TextEngine::insert(uint line, uint col, char to_insert) {
         std::string& line_ref = this->lines[line].text;
         if (col == line_ref.length()) {
             // if we're at the end of a line, all we need to do is insert an empty line after this.
-            this->new_line_after(line);
+            return this->new_line_after(line);
         } else {
             std::string after = line_ref.substr(col);
             // erase everything after the cursor...
