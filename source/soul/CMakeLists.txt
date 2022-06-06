@@ -25,10 +25,13 @@ set(SOUL_INCLUDE_DIRECTORIES
 	"${CMAKE_SOURCE_DIR}/include/soul"
 	"${PROJECT_BINARY_DIR}/source/soul"
 	"${CMAKE_SOURCE_DIR}/third_party/expected/include"
-	"${CMAKE_SOURCE_DIR}/third_party/glfw/include")
+	"${CMAKE_SOURCE_DIR}/third_party/glfw/include"
+	"${CMAKE_SOURCE_DIR}/third_party/bgfx.cmake/bgfx/include"
+	"${CMAKE_SOURCE_DIR}/third_party/bgfx.cmake/bx/include")
 
 set(SOUL_LINK_LIBRARIES
-	glfw)
+	glfw
+	bgfx)
 
 set(SOUL_COMPILE_DEFINITIONS)
 
