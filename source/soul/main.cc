@@ -20,61 +20,96 @@
 #include "window.hh"
 #include "textengine.hh"
 
+#include "bgfx/bgfx.h"
+#include "bgfx/platform.h"
+
 using namespace soul;
 
+void testTextEngine();
+
 int main(int argc, char** argv) {
-	// example textengine usage:
-	{
-		auto engine = TextEngine::from("line 3\nline 4\nline 5").value();
-
-		std::cout << "before:" << std::endl << engine.to_string() << std::endl;
-
-		engine.insert_str(0, 5, "1\nline 2\nline ");
-
-		std::cout << "after insert: " << std::endl << engine.to_string() << std::endl;
-
-		engine.delete_range(1, 2, 2, 3); // "lie 3"
-
-		std::cout << "after delete_range: " << std::endl << engine.to_string() << std::endl;
-
-		engine.delete_char(0,1);
-		
-		std::cout << "after delete_char: " << std::endl << engine.to_string() << std::endl;
-
-		engine.delete_range(3,0,2);
-
-		std::cout << "after delete_range: " << std::endl << engine.to_string() << std::endl;
-
-		engine.insert(2,0,'\n');
-
-		std::cout << "after newline insert: " << std::endl << engine.to_string() << std::endl;
-
-		engine.insert(3,2,'\n');
-
-		std::cout << "after newline insert 2: " << std::endl << engine.to_string() << std::endl;
-
-		auto lines_view = *engine.get_lines(0, engine.num_lines()-1);
-		for (auto line : lines_view) {
-			std::cout << line.length() << " ";
-		}
-		std::cout << std::endl;
-	}
+	testTextEngine();
 
 	auto window = Window::create(800, 600, "test");
 
-	if (window) {
-		std::cout << "successfully created window!!!" << std::endl;
-		auto handle = window->getHandle();
-
-		if (handle) {
-			std::cout << *handle << std::endl;
-		} else {
-			std::cout << "unable to get native window handle! error: " << std::hex << (int)handle.error() << std::endl;
-		}
-	}
-	else {
-		std::cout << (int)window.error() << std::endl;
+	if (!window) {
+		std::cout << "failed to open window (" << (int)window.error() 
+				  << ")" << std::endl;
+		return 1;
 	}
 
-	for (;;);
+	std::cout << "successfully created window!!!" << std::endl;
+	auto pd = window.value()->getPlatformData();
+
+	if (!pd) {
+		std::cout
+			<< "unable to get native platform data! error: "
+			<< std::hex << (int)pd.error() << std::endl;
+		return 1;
+	}
+	
+	// just render an empty window for now.
+
+	bgfx::setPlatformData(pd.value());
+
+	// 
+	bgfx::renderFrame();
+
+	bgfx::Init bgfxInit;
+
+	// TODO: should window return a PlatformData, or an Init?
+
+	bgfxInit.type = bgfx::RendererType::Count;
+	bgfxInit.resolution.width = 800;
+	bgfxInit.resolution.height = 600;
+	bgfxInit.resolution.reset = BGFX_RESET_VSYNC;
+	auto code =  bgfx::init(bgfxInit);
+	if (!code) {
+		std::cerr << "failed to init bgfx!" << std::endl;
+		return 1;
+	}
+	
+	bgfx::setViewClear(
+		0,
+		BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH,
+		0x443355FF,
+		1.0f,
+		0
+	);
+	bgfx::setViewRect(0, 0, 0, 800, 600);
+
+	while (true) {
+		bgfx::touch(0);
+		bgfx::frame();
+	}
+	delete *window;
+	bgfx::shutdown();
+	Window::deinit_backend();
+}
+
+void testTextEngine() {
+	// example textengine usage:
+	auto engine = TextEngine::from("line 3\nline 4\nline 5").value();
+
+	// std::cout << "before:" << std::endl << engine.to_string() << std::endl;
+
+	engine.insert_str(0, 5, "1\nline 2\nline ");
+
+	engine.delete_range(1, 2, 2, 3); // "lie 3"
+
+	engine.delete_char(0,1);
+
+	engine.delete_range(3,0,2);
+
+	engine.insert(2,0,'\n');
+
+	engine.insert(3,2,'\n');
+
+	std::cout << "after: " << std::endl << engine.to_string() << std::endl << "lengths: ";
+
+	auto lines_view = *engine.get_lines(0, engine.num_lines()-1);
+	for (auto line : lines_view) {
+		std::cout << line.length() << " ";
+	}
+	std::cout << std::endl;
 }

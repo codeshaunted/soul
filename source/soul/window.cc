@@ -17,9 +17,14 @@
 
 #include "window.hh"
 
+#include "bgfx/platform.h"
+
+#include "iostream"
+
 #if defined(SOUL_IS_WINDOWS)
 #define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(SOUL_IS_LINUX)
+// TODO: handle wayland
 // #define GLFW_EXPOSE_NATIVE_WAYLAND
 #define GLFW_EXPOSE_NATIVE_X11
 #endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
@@ -37,6 +42,15 @@ Window::~Window() {
 	}
 }
 
+// TODO: should this be triggered automatically? perhaps when the last window
+//       is destroyed?
+void Window::deinit_backend() {
+	if (Window::glfw_initialized) {
+		glfwTerminate();
+		Window::glfw_initialized = false;
+	}
+}
+
 WindowError Window::initializeGLFW_() {
 	if (!Window::glfw_initialized) {
 		glfwSetErrorCallback(glfwErrorCallback_);
@@ -50,7 +64,7 @@ WindowError Window::initializeGLFW_() {
 	return WindowError::SUCCESS;
 }
 
-tl::expected<Window, WindowError> Window::create(int width, int height, std::string title) {
+tl::expected<Window*, WindowError> Window::create(int width, int height, std::string title) {
 	if (!Window::glfw_initialized) {
 		WindowError initialize_error = initializeGLFW_();
 
@@ -58,9 +72,11 @@ tl::expected<Window, WindowError> Window::create(int width, int height, std::str
 	}
 
 	SOUL_GLFW_CATCH_ERROR();
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+	
 
-	if (window && SOUL_GLFW_GET_ERROR() == WindowError::SUCCESS) return Window(window);
+	if (window && SOUL_GLFW_GET_ERROR() == WindowError::SUCCESS) return new Window(window);
 	else return tl::unexpected(SOUL_GLFW_GET_ERROR());
 }
 
@@ -85,8 +101,31 @@ tl::expected<WindowHandle, WindowError> Window::getHandle() {
 	handle = (void*)glfwGetX11Window(this->window);
 #endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
 
+	if (handle == NULL) return tl::unexpected(WindowError::UNKNOWN);
 	if (SOUL_GLFW_GET_ERROR() == WindowError::SUCCESS) return handle;
 	else return tl::unexpected(SOUL_GLFW_GET_ERROR());
+}
+
+tl::expected<bgfx::PlatformData, WindowError> Window::getPlatformData() {
+	bgfx::PlatformData ret;
+
+	auto maybe_nwh = this->getHandle();
+	if (!maybe_nwh) return tl::unexpected(maybe_nwh.error());
+
+	ret.nwh = *maybe_nwh;
+
+#if defined(SOUL_IS_LINUX)
+	// using x11, we also need to provide the display.
+	SOUL_GLFW_CATCH_ERROR();
+	auto ndt = glfwGetX11Display();
+
+	if (SOUL_GLFW_GET_ERROR() != WindowError::SUCCESS)
+		return tl::unexpected(SOUL_GLFW_GET_ERROR());
+	
+	ret.ndt = ndt;
+#endif
+
+	return ret;
 }
 
 Window::Window(GLFWwindow* new_window) {

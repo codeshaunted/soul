@@ -29,6 +29,7 @@
 
 #include "tl/expected.hpp"
 #include "GLFW/glfw3.h"
+#include "bgfx/bgfx.h"
 
 namespace soul {
 
@@ -44,6 +45,7 @@ namespace soul {
 #undef GLFW_FORMAT_UNAVAILABLE
 enum class WindowError {
 	SUCCESS = 0,
+	UNKNOWN = 1,
 	GLFW_NOT_INITIALIZED = 0x00010001,
 	GLFW_NO_CURRENT_CONTEXT = 0x00010002,
 	GLFW_INVALID_ENUM = 0x00010003,
@@ -70,9 +72,14 @@ typedef void* WindowHandle;
 class Window {
 	public:
 		~Window();
-		static tl::expected<Window, WindowError> create(int width, int height, std::string title);
+		static void deinit_backend();
+		/**
+		 * creates and allocates a window (should be deleted).
+		 */
+		static tl::expected<Window*, WindowError> create(int width, int height, std::string title);
 		tl::expected<WindowSize, WindowError> getSize();
 		tl::expected<WindowHandle, WindowError> getHandle();
+		tl::expected<bgfx::PlatformData, WindowError> getPlatformData();
 	private:
 		Window(GLFWwindow* window);
 		static void glfwErrorCallback_(int error, const char* description);
