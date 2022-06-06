@@ -18,10 +18,40 @@
 #include <iostream>
 
 #include "window.hh"
+#include "textengine.hh"
 
 using namespace soul;
 
 int main(int argc, char** argv) {
+	// example textengine usage:
+	{
+		auto engine = TextEngine::from("line 3\nline 4\nline 5").value();
+
+		std::cout << "before:" << std::endl << engine.to_string() << std::endl;
+
+		engine.insert_str(0, 5, "1\nline 2\nline ");
+
+		std::cout << "after insert: " << std::endl << engine.to_string() << std::endl;
+
+		engine.delete_range(1, 2, 2, 3); // "lie 3"
+
+		std::cout << "after delete_range: " << std::endl << engine.to_string() << std::endl;
+
+		engine.delete_char(0,1);
+		
+		std::cout << "after delete_char: " << std::endl << engine.to_string() << std::endl;
+
+		engine.delete_range(3,0,2);
+
+		std::cout << "after delete_range: " << std::endl << engine.to_string() << std::endl;
+
+		auto lines_view = *engine.get_lines(0, engine.num_lines()-1);
+		for (auto line : lines_view) {
+			std::cout << line.length() << " ";
+		}
+		std::cout << std::endl;
+	}
+
 	auto window = Window::create(800, 600, "test");
 
 	if (window) {
