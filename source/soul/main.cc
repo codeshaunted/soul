@@ -17,11 +17,11 @@
 
 #include <iostream>
 
-#include "window.hh"
-#include "textengine.hh"
-
 #include "bgfx/bgfx.h"
 #include "bgfx/platform.h"
+
+#include "window.hh"
+#include "text_engine.hh"
 
 using namespace soul;
 
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 	}
 	delete *window;
 	bgfx::shutdown();
-	Window::deinit_backend();
+	Window::terminateBackend();
 }
 
 void testTextEngine() {
@@ -93,21 +93,21 @@ void testTextEngine() {
 
 	// std::cout << "before:" << std::endl << engine.to_string() << std::endl;
 
-	engine.insert_str(0, 5, "1\nline 2\nline ");
+	engine.insertStr(0, 5, "1\nline 2\nline ");
 
-	engine.delete_range(1, 2, 2, 3); // "lie 3"
+	engine.deleteRange(1, 2, 2, 3); // "lie 3"
 
-	engine.delete_char(0,1);
+	engine.deleteChar(0,1);
 
-	engine.delete_range(3,0,2);
+	engine.deleteRange(3,0,2);
 
 	engine.insert(2,0,'\n');
 
 	engine.insert(3,2,'\n');
 
-	std::cout << "after: " << std::endl << engine.to_string() << std::endl << "lengths: ";
+	std::cout << "after: " << std::endl << engine.toString() << std::endl << "lengths: ";
 
-	auto lines_view = *engine.get_lines(0, engine.num_lines()-1);
+	auto lines_view = *engine.getLines(0, engine.numLines()-1);
 	for (auto line : lines_view) {
 		std::cout << line.length() << " ";
 	}

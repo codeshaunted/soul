@@ -19,8 +19,6 @@
 
 #include "bgfx/platform.h"
 
-#include "iostream"
-
 #if defined(SOUL_IS_WINDOWS)
 #define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(SOUL_IS_LINUX)
@@ -44,29 +42,16 @@ Window::~Window() {
 
 // TODO: should this be triggered automatically? perhaps when the last window
 //       is destroyed?
-void Window::deinit_backend() {
+void Window::terminateBackend() {
 	if (Window::glfw_initialized) {
 		glfwTerminate();
 		Window::glfw_initialized = false;
 	}
 }
 
-WindowError Window::initializeGLFW_() {
-	if (!Window::glfw_initialized) {
-		glfwSetErrorCallback(glfwErrorCallback_);
-
-		SOUL_GLFW_CATCH_ERROR();
-		Window::glfw_initialized = glfwInit();
-
-		return SOUL_GLFW_GET_ERROR();
-	}
-
-	return WindowError::SUCCESS;
-}
-
 tl::expected<Window*, WindowError> Window::create(int width, int height, std::string title) {
 	if (!Window::glfw_initialized) {
-		WindowError initialize_error = initializeGLFW_();
+		WindowError initialize_error = Window::initializeGLFW();
 
 		if (initialize_error != WindowError::SUCCESS) return tl::unexpected(initialize_error);
 	}
@@ -132,8 +117,21 @@ Window::Window(GLFWwindow* new_window) {
 	this->window = new_window;
 }
 
-void Window::glfwErrorCallback_(int error, const char* description) {
+void Window::glfwErrorCallback(int error, const char* description) {
 	Window::glfw_error = WindowError(error);
+}
+
+WindowError Window::initializeGLFW() {
+	if (!Window::glfw_initialized) {
+		glfwSetErrorCallback(Window::glfwErrorCallback);
+
+		SOUL_GLFW_CATCH_ERROR();
+		Window::glfw_initialized = glfwInit();
+
+		return SOUL_GLFW_GET_ERROR();
+	}
+
+	return WindowError::SUCCESS;
 }
 
 WindowError Window::glfw_error = WindowError::SUCCESS;

@@ -72,7 +72,7 @@ typedef void* WindowHandle;
 class Window {
 	public:
 		~Window();
-		static void deinit_backend();
+		static void terminateBackend();
 		/**
 		 * creates and allocates a window (should be deleted).
 		 */
@@ -82,8 +82,8 @@ class Window {
 		tl::expected<bgfx::PlatformData, WindowError> getPlatformData();
 	private:
 		Window(GLFWwindow* window);
-		static void glfwErrorCallback_(int error, const char* description);
-		static WindowError initializeGLFW_();
+		static void glfwErrorCallback(int error, const char* description);
+		static WindowError initializeGLFW();
 		GLFWwindow* window;
 		static WindowError glfw_error;
 		static bool glfw_initialized;

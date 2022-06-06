@@ -1,8 +1,27 @@
-#include "textengine.hh"
+// codeshaunted - soul
+// source/soul/text_engine.cc
+// text engine class source file
+// Copyright 2021 codeshaunted
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org / licenses / LICENSE - 2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissionsand
+// limitations under the License.
+
+#include "text_engine.hh"
 
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+
+namespace soul {
 
 Line::~Line() {
     // nothing?
@@ -28,7 +47,7 @@ TextEngine TextEngine::create() {
     return TextEngine(std::nullopt);
 }
 
-tl::expected<std::vector<Line>, std::string> split_into_lines(std::string_view text) {
+tl::expected<std::vector<Line>, std::string> splitIntoLines(std::string_view text) {
     std::vector<Line> lines;
     std::string currentLine;
     
@@ -61,7 +80,7 @@ tl::expected<std::vector<Line>, std::string> split_into_lines(std::string_view t
 tl::expected<TextEngine, std::string> TextEngine::from(std::string_view text) {
     // initial_text might be multiple lines, in which case it needs to be split.
 
-    return split_into_lines(text).map([](auto v){
+    return splitIntoLines(text).map([](auto v){
         return TextEngine(v);
     });
 }
@@ -77,7 +96,7 @@ TextEngine::TextEngine(std::optional<std::vector<Line>> initial) {
 
 TextEngine::~TextEngine() {}
 
-std::string TextEngine::to_string() {
+std::string TextEngine::toString() {
     std::string out;
     for (auto line : this->lines) {
         out.append(line.text);
@@ -86,26 +105,26 @@ std::string TextEngine::to_string() {
     return out;
 }
 
-uint TextEngine::num_lines() {return this->lines.size();}
+unsigned int TextEngine::numLines() {return this->lines.size();}
 
-std::optional<std::vector<std::string_view>> TextEngine::get_lines(uint from, uint to) {
+std::optional<std::vector<std::string_view>> TextEngine::getLines(unsigned int from, unsigned int to) {
     auto num = this->lines.size();
     if (to < from || from >= num || to >= num) {
         return std::nullopt;
     }
     std::vector<std::string_view> ret;
-    for (uint i = from; i <= to; i++) {
+    for (unsigned int i = from; i <= to; i++) {
         ret.push_back(this->lines[i].text);
     }
     return ret;
 }
 
-bool TextEngine::can_insert(uint line, uint col) {
+bool TextEngine::canInsert(unsigned int line, unsigned int col) {
     return line < this->lines.size() &&
            col <= this->lines[line].text.length();
 }
 
-bool TextEngine::new_line_after(uint line) {
+bool TextEngine::newLineAfter(unsigned int line) {
     if (line > this->lines.size()) {
         line = this->lines.size();
     }
@@ -113,8 +132,8 @@ bool TextEngine::new_line_after(uint line) {
     return true;
 }
 
-bool TextEngine::insert(uint line, uint col, char to_insert) {
-    if (!this->can_insert(line, col)) {
+bool TextEngine::insert(unsigned int line, unsigned int col, char to_insert) {
+    if (!this->canInsert(line, col)) {
         std::cerr << "cannot insert at " << line << ":" << col << "!" << std::endl;
         return false;
     }
@@ -122,7 +141,7 @@ bool TextEngine::insert(uint line, uint col, char to_insert) {
         std::string& line_ref = this->lines[line].text;
         if (col == line_ref.length()) {
             // if we're at the end of a line, all we need to do is insert an empty line after this.
-            return this->new_line_after(line);
+            return this->newLineAfter(line);
         } else {
             std::string after = line_ref.substr(col);
             // erase everything after the cursor...
@@ -143,12 +162,12 @@ bool TextEngine::insert(uint line, uint col, char to_insert) {
 
 
 
-bool TextEngine::insert_str(uint line, uint col, std::string_view str) {
-    if (!this->can_insert(line, col)) {
+bool TextEngine::insertStr(unsigned int line, unsigned int col, std::string_view str) {
+    if (!this->canInsert(line, col)) {
         std::cerr << "cannot insert at " << line << ":" << col << "!" << std::endl;
         return false;
     }
-    auto new_lines = split_into_lines(str);
+    auto new_lines = splitIntoLines(str);
     if (!new_lines) return false;
 
     // This needs to change
@@ -192,7 +211,7 @@ bool TextEngine::insert_str(uint line, uint col, std::string_view str) {
  *   ...
  * ]
  */
-void d_print_vec(std::vector<std::string>& v) {
+void dPrintVec(std::vector<std::string>& v) {
     std::cout << "[" << std::endl;
     for(size_t i = 0; i < v.size(); i++) {
         std::cout << i << ":" << v[i] << std::endl;
@@ -200,9 +219,9 @@ void d_print_vec(std::vector<std::string>& v) {
     std::cout << "]" << std::endl;
 }
 /**
- * see d_print_vec. unwraps Line.text.
+ * see dPrintVec. unwraps Line.text.
  */
-void d_print_lines(std::vector<Line>& v) {
+void dPrintLines(std::vector<Line>& v) {
     std::cout << "[" << std::endl;
     for(size_t i = 0; i < v.size(); i++) {
         std::cout << i << ":" << v[i].text << std::endl;
@@ -210,16 +229,16 @@ void d_print_lines(std::vector<Line>& v) {
     std::cout << "]" << std::endl;
 }
 
-bool TextEngine::delete_char(uint line, uint col) {
-    if (!this->can_insert(line, col)) return false;
+bool TextEngine::deleteChar(unsigned int line, unsigned int col) {
+    if (!this->canInsert(line, col)) return false;
     this->lines[line].text.erase(col, 1);
     return true;
 }
 
-bool TextEngine::delete_range(uint line, uint start, uint end) {
+bool TextEngine::deleteRange(unsigned int line, unsigned int start, unsigned int end) {
     if (
-        !this->can_insert(line, start) ||
-        !this->can_insert(line,end) ||
+        !this->canInsert(line, start) ||
+        !this->canInsert(line,end) ||
         end <= start
     ) {
         return false;
@@ -230,9 +249,9 @@ bool TextEngine::delete_range(uint line, uint start, uint end) {
     return true;
 }
 
-bool TextEngine::delete_range(uint line_from, uint col_from, uint line_to, uint col_to) {
+bool TextEngine::deleteRange(unsigned int line_from, unsigned int col_from, unsigned int line_to, unsigned int col_to) {
     if (line_from == line_to) {
-        return this->delete_range(line_from, col_from, col_to);
+        return this->deleteRange(line_from, col_from, col_to);
     }
     
     std::string& start_line = this->lines[line_from].text;
@@ -246,3 +265,5 @@ bool TextEngine::delete_range(uint line_from, uint col_from, uint line_to, uint 
 
     return false;
 }
+
+} // namespace soul
