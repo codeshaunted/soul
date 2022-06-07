@@ -15,19 +15,7 @@
 # See the License for the specific language governing permissionsand
 # limitations under the License.
 
-set(SOUL_SOURCE_FILES
-	"${CMAKE_CURRENT_SOURCE_DIR}/main.cc"
-	"${CMAKE_CURRENT_SOURCE_DIR}/window.cc"
-	"${CMAKE_CURRENT_SOURCE_DIR}/renderer.cc"
-	"${CMAKE_CURRENT_SOURCE_DIR}/text_engine.cc")
-
-set(SOUL_INCLUDE_DIRECTORIES
-	"${CMAKE_SOURCE_DIR}/include/soul"
-	"${PROJECT_BINARY_DIR}/source/soul"
-	"${CMAKE_SOURCE_DIR}/third_party/expected/include"
-	"${CMAKE_SOURCE_DIR}/third_party/glfw/include"
-	"${CMAKE_SOURCE_DIR}/third_party/bgfx.cmake/bgfx/include"
-	"${CMAKE_SOURCE_DIR}/third_party/bgfx.cmake/bx/include")
+include("${CMAKE_CURRENT_SOURCE_DIR}/sources.cmake")
 
 set(SOUL_LINK_LIBRARIES
 	glfw
@@ -37,7 +25,7 @@ set(SOUL_COMPILE_DEFINITIONS)
 
 configure_file("${CMAKE_SOURCE_DIR}/include/soul/config.hh.in" "config.hh")
 
-add_executable(soul ${SOUL_SOURCE_FILES})
+add_executable(soul ${SOUL_MAIN} ${SOUL_SOURCE_FILES})
 
 target_include_directories(soul PUBLIC ${SOUL_INCLUDE_DIRECTORIES})
 

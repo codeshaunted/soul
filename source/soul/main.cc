@@ -26,11 +26,7 @@
 
 using namespace soul;
 
-void testTextEngine();
-
 int main(int argc, char** argv) {
-	testTextEngine();
-
 	auto window = Window::create(800, 600, "test");
 
 	if (!window) {
@@ -56,31 +52,4 @@ int main(int argc, char** argv) {
 	delete *window;
 	delete *renderer;
 	Window::terminateBackend();
-}
-
-void testTextEngine() {
-	// example textengine usage:
-	auto engine = TextEngine::from("line 3\nline 4\nline 5").value();
-
-	// std::cout << "before:" << std::endl << engine.to_string() << std::endl;
-
-	engine.insertStr(0, 5, "1\nline 2\nline ");
-
-	engine.deleteRange(1, 2, 2, 3); // "lie 3"
-
-	engine.deleteChar(0,1);
-
-	engine.deleteRange(3,0,2);
-
-	engine.insert(2,0,'\n');
-
-	engine.insert(3,2,'\n');
-
-	std::cout << "after: " << std::endl << engine.toString() << std::endl << "lengths: ";
-
-	auto lines_view = *engine.getLines(0, engine.numLines()-1);
-	for (auto line : lines_view) {
-		std::cout << line.length() << " ";
-	}
-	std::cout << std::endl;
 }

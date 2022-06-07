@@ -25,6 +25,8 @@
 
 #include "tl/expected.hpp"
 
+#include "error.hh"
+
 namespace soul {
 
 class Line {
@@ -57,6 +59,7 @@ class TextEngine {
          */
         std::string toString();
         std::optional<std::vector<std::string_view>> getLines(unsigned int from, unsigned int to);
+        tl::expected<Line*, Error> getLine(unsigned int num);
         unsigned int numLines();
         bool canInsert(unsigned int line, unsigned int col);
         // return true if succeeded, otherwise false.

@@ -7,3 +7,6 @@
 [submodule "third_party/bgfx.cmake"]
 	path = third_party/bgfx.cmake
 	url = https://github.com/bkaradzic/bgfx.cmake
+[submodule "third_party/doctest"]
+	path = third_party/doctest
+	url = https://github.com/doctest/doctest

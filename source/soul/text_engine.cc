@@ -119,6 +119,14 @@ std::optional<std::vector<std::string_view>> TextEngine::getLines(unsigned int f
     return ret;
 }
 
+tl::expected<Line*, Error> TextEngine::getLine(unsigned int num) {
+    if (num < 0 || num >= this->lines.size()) {
+        return tl::unexpected(Error::IDX_OUT_OF_RANGE);
+    }
+    
+    return &this->lines[num];
+}
+
 bool TextEngine::canInsert(unsigned int line, unsigned int col) {
     return line < this->lines.size() &&
            col <= this->lines[line].text.length();

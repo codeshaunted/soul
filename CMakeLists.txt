@@ -46,3 +46,11 @@ add_subdirectory("third_party")
 
 # internal
 add_subdirectory("source")
+
+option(SOUL_BUILD_TESTS "build soul tests" ON)
+
+if(SOUL_BUILD_TESTS) 
+
+  add_subdirectory("tests")
+
+endif()
