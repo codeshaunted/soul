@@ -32,3 +32,11 @@ target_include_directories(soul PUBLIC ${SOUL_INCLUDE_DIRECTORIES})
 target_link_libraries(soul PUBLIC ${SOUL_LINK_LIBRARIES})
 
 target_compile_definitions(soul PUBLIC ${SOUL_COMPILE_DEFINITIONS})
+
+# warnings
+if(MSVC)
+	target_compile_options(soul PRIVATE /W4 /WX)
+else()
+	target_compile_options(soul PRIVATE 
+		-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter)
+endif()

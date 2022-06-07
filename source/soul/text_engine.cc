@@ -51,7 +51,7 @@ tl::expected<std::vector<Line>, std::string> splitIntoLines(std::string_view tex
     std::vector<Line> lines;
     std::string currentLine;
     
-    for (int i = 0; i < text.length(); i++) {
+    for (unsigned int i = 0; i < text.length(); i++) {
         char c = text[i];
         if (!iscntrl(c)) {
             currentLine.append(1, c);
@@ -127,56 +127,57 @@ tl::expected<Line*, Error> TextEngine::getLine(unsigned int num) {
     return &this->lines[num];
 }
 
-bool TextEngine::canInsert(unsigned int line, unsigned int col) {
-    return line < this->lines.size() &&
-           col <= this->lines[line].text.length();
+bool TextEngine::canInsert(CurPos pos) {
+    return pos.first < this->lines.size() &&
+           pos.second <= this->lines[pos.first].text.length();
 }
 
-bool TextEngine::newLineAfter(unsigned int line) {
+std::optional<CurPos> TextEngine::newLineAfter(unsigned int line) {
     if (line > this->lines.size()) {
         line = this->lines.size();
     }
     this->lines.insert(this->lines.begin() + line + 1, Line::create());
-    return true;
+    return CurPos{line + 1, 0};
 }
 
-bool TextEngine::insert(unsigned int line, unsigned int col, char to_insert) {
-    if (!this->canInsert(line, col)) {
-        std::cerr << "cannot insert at " << line << ":" << col << "!" << std::endl;
-        return false;
+std::optional<CurPos> TextEngine::insert(CurPos pos, char to_insert) {
+    if (!this->canInsert(pos)) {
+        std::cerr << "cannot insert at " << pos.first << ":" << pos.second << "!" << std::endl;
+        return std::nullopt;
     }
     if (to_insert == '\n') { // handle newline insertion
-        std::string& line_ref = this->lines[line].text;
-        if (col == line_ref.length()) {
+        std::string& line_ref = this->lines[pos.first].text;
+        if (pos.second == line_ref.length()) {
             // if we're at the end of a line, all we need to do is insert an empty line after this.
-            return this->newLineAfter(line);
+            return this->newLineAfter(pos.first);
         } else {
-            std::string after = line_ref.substr(col);
+            std::string after = line_ref.substr(pos.second);
             // erase everything after the cursor...
-            line_ref.erase(col, std::string::npos);
+            line_ref.erase(pos.second, std::string::npos);
             // and put in on the next line.
-            this->lines.insert(this->lines.begin() + line + 1, Line::from(after));
+            this->lines.insert(this->lines.begin() + pos.first + 1, Line::from(after));
         }
-        return true;
+        // cursor will now be on the start of the next line.
+        return CurPos{pos.first + 1, 0};
     } else if (iscntrl(to_insert)) { // don't allow any other control characters
         std::cerr << "cannot insert invalid character" << std::hex << to_insert << std::endl;
-        return false;
+        return std::nullopt;
     } else { // if the character is anything else, insert it normally.
-        std::string& r = this->lines[line].text;
-        r.insert(r.begin() + col, to_insert);
-        return true;  
+        std::string& r = this->lines[pos.first].text;
+        r.insert(r.begin() + pos.second, to_insert);
+        return CurPos{pos.first, pos.second + 1};  
     }
 }
 
 
 
-bool TextEngine::insertStr(unsigned int line, unsigned int col, std::string_view str) {
-    if (!this->canInsert(line, col)) {
-        std::cerr << "cannot insert at " << line << ":" << col << "!" << std::endl;
-        return false;
+std::optional<CurPos> TextEngine::insertStr(CurPos pos, std::string_view str) {
+    if (!this->canInsert(pos)) {
+        // std::cerr << "cannot insert at " << pos.first << ":" << pos.second << "!" << std::endl;
+        return std::nullopt;
     }
     auto new_lines = splitIntoLines(str);
-    if (!new_lines) return false;
+    if (!new_lines) return std::nullopt;
 
     // This needs to change
     //    line:{start}{end}
@@ -186,29 +187,31 @@ bool TextEngine::insertStr(unsigned int line, unsigned int col, std::string_view
     //    last: {input[last]}{end}
     // so its kinda complicated and confusing :(
 
-    std::string& current_line = this->lines[line].text;
+    std::string& current_line = this->lines[pos.first].text;
 
     // optimization: if it is only one line, just insert
     if (new_lines->size() == 1) {
-        current_line.insert(col, (*new_lines)[0].text);
-        return true;
+        auto& t = (*new_lines)[0].text;
+        current_line.insert(pos.second, t);
+        return CurPos{pos.first, pos.second + t.length()};
     }
 
-    auto new_start = current_line.substr(0, col);
+    auto new_start = current_line.substr(0, pos.second);
     new_start.append((*new_lines)[0].text);
 
-    auto rest_of_line = current_line.substr(col, current_line.length());
+    auto rest_of_line = current_line.substr(pos.second, current_line.length());
     std::string& last = new_lines->rbegin()[0].text;
+    auto len_before_concat = last.length();
     // is this better than .append? no idea lmao
     last.insert(last.end(), rest_of_line.begin(), rest_of_line.end());
 
     // modify list
-    (this->lines.begin() + line)[0].text = new_start;
+    (this->lines.begin() + pos.first)[0].text = new_start;
 
     current_line = new_start;
-    this->lines.insert(this->lines.begin() + line + 1, new_lines->begin() + 1, new_lines->end());
+    this->lines.insert(this->lines.begin() + pos.first + 1, new_lines->begin() + 1, new_lines->end());
 
-    return true;
+    return CurPos{pos.first + new_lines->size() - 1, len_before_concat};
 }
 
 /**
@@ -237,41 +240,56 @@ void dPrintLines(std::vector<Line>& v) {
     std::cout << "]" << std::endl;
 }
 
-bool TextEngine::deleteChar(unsigned int line, unsigned int col) {
-    if (!this->canInsert(line, col)) return false;
-    this->lines[line].text.erase(col, 1);
-    return true;
+std::optional<CurPos> TextEngine::deleteChar(CurPos pos) {
+    if (!this->canInsert(pos)) return std::nullopt;
+    
+    // if the cursor is on the first char of a line, append this line to the previous line.
+    if (pos.second == 0) {
+        if (pos.first == 0) {
+            // if we are at the first character of the first line, do nothing.
+            return CurPos{0,0};
+        }
+        // append to previous
+        auto& prev_text_r = this->lines[pos.first - 1].text;
+        prev_text_r.append(this->lines[pos.first].text);
+        // delete line
+        this->lines.erase(this->lines.begin() + pos.first);
+        return CurPos{pos.first - 1, prev_text_r.length()};
+    } else {
+        this->lines[pos.first].text.erase(pos.second - 1, 1);
+        return CurPos{pos.first, pos.second - 1};
+    }
 }
 
-bool TextEngine::deleteRange(unsigned int line, unsigned int start, unsigned int end) {
+std::optional<CurPos> TextEngine::deleteRange(unsigned int line, unsigned int start, unsigned int end) {
     if (
-        !this->canInsert(line, start) ||
-        !this->canInsert(line,end) ||
+        !this->canInsert({line, start}) ||
+        !this->canInsert({line,end}) ||
         end <= start
     ) {
-        return false;
+        return std::nullopt;
     }
 
     std::string& line_ref = this->lines[line].text;
     line_ref.erase(line_ref.begin() + start, line_ref.begin() + end + 1);
-    return true;
+    return CurPos{line, start};
 }
 
-bool TextEngine::deleteRange(unsigned int line_from, unsigned int col_from, unsigned int line_to, unsigned int col_to) {
-    if (line_from == line_to) {
-        return this->deleteRange(line_from, col_from, col_to);
+std::optional<CurPos> TextEngine::deleteRange(CurPos from, CurPos to) {
+    if (from.first == to.first) {
+        return this->deleteRange(from.first, from.second, to.second);
     }
     
-    std::string& start_line = this->lines[line_from].text;
-    std::string& end_line = this->lines[line_to].text;
+    std::string& start_line = this->lines[from.first].text;
+    std::string& end_line = this->lines[to.first].text;
 
-    auto new_start = start_line.substr(0, col_from);
-    auto new_end = end_line.substr(col_to);
+    auto new_start = start_line.substr(0, from.second);
+    auto new_end = end_line.substr(to.second);
 
-    this->lines[line_from].text = new_start + new_end;
-    this->lines.erase(this->lines.begin() + line_from + 1, this->lines.begin() + line_to + 1);
+    this->lines[from.first].text = new_start + new_end;
+    this->lines.erase(this->lines.begin() + from.first + 1, this->lines.begin() + to.first + 1);
 
-    return false;
+    return CurPos{from.first, from.second};
 }
 
 } // namespace soul
