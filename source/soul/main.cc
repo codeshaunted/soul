@@ -21,6 +21,7 @@
 #include "bgfx/platform.h"
 
 #include "window.hh"
+#include "renderer.hh"
 #include "text_engine.hh"
 
 using namespace soul;
@@ -33,57 +34,27 @@ int main(int argc, char** argv) {
 	auto window = Window::create(800, 600, "test");
 
 	if (!window) {
-		std::cout << "failed to open window (" << (int)window.error() 
+		std::cerr << "failed to open window (" << (int)window.error() 
 				  << ")" << std::endl;
 		return 1;
 	}
 
-	std::cout << "successfully created window!!!" << std::endl;
-	auto pd = window.value()->getPlatformData();
+	std::cerr << "successfully created window!!!" << std::endl;
 
-	if (!pd) {
-		std::cout
-			<< "unable to get native platform data! error: "
-			<< std::hex << (int)pd.error() << std::endl;
+	auto renderer = Renderer::create(*window);
+
+	if (!renderer) {
+		std::cerr << "failed to create renderer (" << (int)renderer.error()
+			<< ")" << std::endl;
 		return 1;
 	}
-	
-	// just render an empty window for now.
-
-	bgfx::setPlatformData(pd.value());
-
-	// 
-	bgfx::renderFrame();
-
-	bgfx::Init bgfxInit;
-
-	// TODO: should window return a PlatformData, or an Init?
-
-	bgfxInit.type = bgfx::RendererType::Count;
-	bgfxInit.resolution.width = 800;
-	bgfxInit.resolution.height = 600;
-	bgfxInit.resolution.reset = BGFX_RESET_VSYNC;
-	auto code =  bgfx::init(bgfxInit);
-	if (!code) {
-		std::cerr << "failed to init bgfx!" << std::endl;
-		return 1;
-	}
-	
-	bgfx::setViewClear(
-		0,
-		BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH,
-		0x443355FF,
-		1.0f,
-		0
-	);
-	bgfx::setViewRect(0, 0, 0, 800, 600);
 
 	while (true) {
-		bgfx::touch(0);
-		bgfx::frame();
+		renderer.value()->update();
 	}
+
 	delete *window;
-	bgfx::shutdown();
+	delete *renderer;
 	Window::terminateBackend();
 }
 

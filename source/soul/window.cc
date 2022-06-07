@@ -30,7 +30,7 @@
 
 namespace soul {
 
-#define SOUL_GLFW_CATCH_ERROR() Window::glfw_error = WindowError::SUCCESS;
+#define SOUL_GLFW_CATCH_ERROR() Window::glfw_error = Error::SUCCESS;
 #define SOUL_GLFW_GET_ERROR() Window::glfw_error
 
 Window::~Window() {
@@ -49,11 +49,11 @@ void Window::terminateBackend() {
 	}
 }
 
-tl::expected<Window*, WindowError> Window::create(int width, int height, std::string title) {
+tl::expected<Window*, Error> Window::create(int width, int height, std::string title) {
 	if (!Window::glfw_initialized) {
-		WindowError initialize_error = Window::initializeGLFW();
+		Error initialize_error = Window::initializeGLFW();
 
-		if (initialize_error != WindowError::SUCCESS) return tl::unexpected(initialize_error);
+		if (initialize_error != Error::SUCCESS) return tl::unexpected(initialize_error);
 	}
 
 	SOUL_GLFW_CATCH_ERROR();
@@ -61,21 +61,21 @@ tl::expected<Window*, WindowError> Window::create(int width, int height, std::st
 	GLFWwindow* window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	
 
-	if (window && SOUL_GLFW_GET_ERROR() == WindowError::SUCCESS) return new Window(window);
+	if (window && SOUL_GLFW_GET_ERROR() == Error::SUCCESS) return new Window(window);
 	else return tl::unexpected(SOUL_GLFW_GET_ERROR());
 }
 
-tl::expected<WindowSize, WindowError> Window::getSize() {
+tl::expected<WindowSize, Error> Window::getSize() {
 	WindowSize size;
 
 	SOUL_GLFW_CATCH_ERROR();
 	glfwGetWindowSize(this->window, &size.height, &size.width);
 
-	if (SOUL_GLFW_GET_ERROR() == WindowError::SUCCESS) return size;
+	if (SOUL_GLFW_GET_ERROR() == Error::SUCCESS) return size;
 	else return tl::unexpected(SOUL_GLFW_GET_ERROR());
 }
 
-tl::expected<WindowHandle, WindowError> Window::getHandle() {
+tl::expected<WindowHandle, Error> Window::getHandle() {
 	WindowHandle handle;
 
 	SOUL_GLFW_CATCH_ERROR();
@@ -86,12 +86,12 @@ tl::expected<WindowHandle, WindowError> Window::getHandle() {
 	handle = (void*)glfwGetX11Window(this->window);
 #endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
 
-	if (handle == NULL) return tl::unexpected(WindowError::UNKNOWN);
-	if (SOUL_GLFW_GET_ERROR() == WindowError::SUCCESS) return handle;
+	if (handle == NULL) return tl::unexpected(Error::UNKNOWN);
+	if (SOUL_GLFW_GET_ERROR() == Error::SUCCESS) return handle;
 	else return tl::unexpected(SOUL_GLFW_GET_ERROR());
 }
 
-tl::expected<bgfx::PlatformData, WindowError> Window::getPlatformData() {
+tl::expected<bgfx::PlatformData, Error> Window::getPlatformData() {
 	bgfx::PlatformData ret;
 
 	auto maybe_nwh = this->getHandle();
@@ -104,7 +104,7 @@ tl::expected<bgfx::PlatformData, WindowError> Window::getPlatformData() {
 	SOUL_GLFW_CATCH_ERROR();
 	auto ndt = glfwGetX11Display();
 
-	if (SOUL_GLFW_GET_ERROR() != WindowError::SUCCESS)
+	if (SOUL_GLFW_GET_ERROR() != Error::SUCCESS)
 		return tl::unexpected(SOUL_GLFW_GET_ERROR());
 	
 	ret.ndt = ndt;
@@ -118,10 +118,10 @@ Window::Window(GLFWwindow* new_window) {
 }
 
 void Window::glfwErrorCallback(int error, const char* description) {
-	Window::glfw_error = WindowError(error);
+	Window::glfw_error = Error(error);
 }
 
-WindowError Window::initializeGLFW() {
+Error Window::initializeGLFW() {
 	if (!Window::glfw_initialized) {
 		glfwSetErrorCallback(Window::glfwErrorCallback);
 
@@ -131,10 +131,10 @@ WindowError Window::initializeGLFW() {
 		return SOUL_GLFW_GET_ERROR();
 	}
 
-	return WindowError::SUCCESS;
+	return Error::SUCCESS;
 }
 
-WindowError Window::glfw_error = WindowError::SUCCESS;
+Error Window::glfw_error = Error::SUCCESS;
 bool Window::glfw_initialized = false;
 
 #undef SOUL_GLFW_CATCH_ERROR

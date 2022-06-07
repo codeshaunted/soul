@@ -31,31 +31,9 @@
 #include "GLFW/glfw3.h"
 #include "bgfx/bgfx.h"
 
-namespace soul {
+#include "error.hh"
 
-// undef these macros and replace them with our enum
-#undef GLFW_NOT_INITIALIZED
-#undef GLFW_NO_CURRENT_CONTEXT
-#undef GLFW_INVALID_ENUM
-#undef GLFW_INVALID_VALUE
-#undef GLFW_OUT_OF_MEMORY
-#undef GLFW_API_UNAVAILABLE
-#undef GLFW_VERSION_UNAVAILABLE
-#undef GLFW_PLATFORM_ERROR
-#undef GLFW_FORMAT_UNAVAILABLE
-enum class WindowError {
-	SUCCESS = 0,
-	UNKNOWN = 1,
-	GLFW_NOT_INITIALIZED = 0x00010001,
-	GLFW_NO_CURRENT_CONTEXT = 0x00010002,
-	GLFW_INVALID_ENUM = 0x00010003,
-	GLFW_INVALID_VALUE = 0x00010004,
-	GLFW_OUT_OF_MEMORY = 0x00010005,
-	GLFW_API_UNAVAILABLE = 0x00010006,
-	GLFW_VERSION_UNAVAILABLE = 0x00010007,
-	GLFW_PLATFORM_ERROR = 0x00010008,
-	GLFW_FORMAT_UNAVAILABLE = 0x00010009
-};
+namespace soul {
 
 struct WindowSize {
 	int width;
@@ -76,16 +54,16 @@ class Window {
 		/**
 		 * creates and allocates a window (should be deleted).
 		 */
-		static tl::expected<Window*, WindowError> create(int width, int height, std::string title);
-		tl::expected<WindowSize, WindowError> getSize();
-		tl::expected<WindowHandle, WindowError> getHandle();
-		tl::expected<bgfx::PlatformData, WindowError> getPlatformData();
+		static tl::expected<Window*, Error> create(int width, int height, std::string title);
+		tl::expected<WindowSize, Error> getSize();
+		tl::expected<WindowHandle, Error> getHandle();
+		tl::expected<bgfx::PlatformData, Error> getPlatformData();
 	private:
-		Window(GLFWwindow* window);
+		Window(GLFWwindow* new_window);
 		static void glfwErrorCallback(int error, const char* description);
-		static WindowError initializeGLFW();
+		static Error initializeGLFW();
 		GLFWwindow* window;
-		static WindowError glfw_error;
+		static Error glfw_error;
 		static bool glfw_initialized;
 };
 

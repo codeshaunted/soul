@@ -18,10 +18,21 @@
 #ifndef SOUL_RENDERER_HH
 #define SOUL_RENDERER_HH
 
+#include "tl/expected.hpp"
+
+#include "window.hh"
+#include "error.hh"
+
 namespace soul {
 
 class Renderer {
-
+	public:
+		~Renderer();
+		static tl::expected<Renderer*, Error> create(Window* window);
+		void update();
+	private:
+		Renderer(Window* new_window);
+		Window* window;
 };
 
 } // namespace soul
