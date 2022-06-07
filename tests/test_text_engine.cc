@@ -1,7 +1,6 @@
 #include "doctest.h"
 
 #include "text_engine.hh"
-#include <iostream>
 
 using namespace soul;
 
