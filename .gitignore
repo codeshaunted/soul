@@ -37,3 +37,6 @@ out/
 
 # Build
 build/
+
+.vscode/
+.cache/

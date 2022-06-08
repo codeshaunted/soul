@@ -19,10 +19,10 @@
 
 namespace soul {
 
-#define SOUL_SET_VERTEX_SHADER_AND_SIZE(Platform) shader = Shaders::vertex_ ## Platform ## ; \
-                                                  shader_size = Shaders::vertex_ ## Platform ## _size
-#define SOUL_SET_FRAGMENT_SHADER_AND_SIZE(Platform) shader = Shaders::fragment_ ## Platform ## ; \
-                                                  shader_size = Shaders::fragment_ ## Platform ## _size
+#define SOUL_SET_VERTEX_SHADER_AND_SIZE(Platform) shader = Shaders::vertex_##Platform; \
+                                                  shader_size = Shaders::vertex_##Platform##_size
+#define SOUL_SET_FRAGMENT_SHADER_AND_SIZE(Platform) shader = Shaders::fragment_##Platform; \
+                                                  shader_size = Shaders::fragment_##Platform##_size
 
 tl::expected<bgfx::ShaderHandle, Error> Shaders::getVertexShader() {
     uint8_t* shader = nullptr;
