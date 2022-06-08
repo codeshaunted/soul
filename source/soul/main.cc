@@ -17,6 +17,7 @@
 
 #include <iostream>
 
+#include "GLFW/glfw3.h"
 #include "bgfx/bgfx.h"
 #include "bgfx/platform.h"
 
@@ -46,8 +47,9 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	while (true) {
+	while (!window.value()->shouldClose()) {
 		renderer.value()->update();
+		auto event = window.value()->awaitEvent();
 	}
 
 	delete *window;

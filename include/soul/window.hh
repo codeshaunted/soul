@@ -19,12 +19,15 @@
 #define SOUL_WINDOW_HH
 
 #include <string>
+#include <optional>
 
 #include "tl/expected.hpp"
 #include "GLFW/glfw3.h"
 #include "bgfx/bgfx.h"
 
 #include "error.hh"
+
+#include "events.hh"
 
 namespace soul {
 
@@ -46,9 +49,24 @@ class Window {
 		tl::expected<WindowSize, Error> getSize();
 		tl::expected<WindowHandle, Error> getHandle();
 		tl::expected<bgfx::PlatformData, Error> getPlatformData();
+		bool shouldClose();
+		void setShouldClose(bool val);
+		// This wraps around glfwWaitEvents and also handles events.
+		std::optional<Event> awaitEvent();
 	private:
 		Window(GLFWwindow* new_window);
 		static void glfwErrorCallback(int error, const char* description);
+		
+		static std::optional<GLFWwindow*> windowAwaitingEvent;
+		static std::optional<Event> latestEvent;
+
+		static void glfwKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+		static void glfwCharacterCallback(GLFWwindow* window, unsigned int codepoint);
+		static void glfwCursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
+		static void glfwCursorEnterLeaveCallback(GLFWwindow* window, int entered);
+		static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+		static void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
 		static Error initializeGLFW();
 		GLFWwindow* window;
 		static Error glfw_error;
