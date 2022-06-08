@@ -22,12 +22,18 @@
 #include <vector>
 #include <span>
 #include <optional>
+#include <utility>
 
 #include "tl/expected.hpp"
 
 #include "error.hh"
 
 namespace soul {
+
+/**
+ * represents a (line, column) pair.
+ */
+typedef std::pair<unsigned int, unsigned int> CurPos;
 
 class Line {
     public:
@@ -61,14 +67,17 @@ class TextEngine {
         std::optional<std::vector<std::string_view>> getLines(unsigned int from, unsigned int to);
         tl::expected<Line*, Error> getLine(unsigned int num);
         unsigned int numLines();
-        bool canInsert(unsigned int line, unsigned int col);
-        // return true if succeeded, otherwise false.
-        bool newLineAfter(unsigned int line);
-        bool insert(unsigned int line, unsigned int col, char to_insert);
-        bool insertStr(unsigned int line, unsigned int col, std::string_view str);
-        bool deleteChar(unsigned int line, unsigned int col);
-        bool deleteRange(unsigned int line, unsigned int start, unsigned int end);
-        bool deleteRange(unsigned int line_from, unsigned int col_from, unsigned int line_to, unsigned int col_to);
+        bool canInsert(CurPos pos);
+        // These all return the new position of a cursor after doing the
+        // specified manipulation, e.g. after an inserted character.
+        std::optional<CurPos> newLineAfter(unsigned int line);
+        std::optional<CurPos> insert(CurPos pos, char to_insert);
+        std::optional<CurPos> insertStr(CurPos pos, std::string_view str);
+        // delete char *before* pos
+        std::optional<CurPos> deleteChar(CurPos pos);
+        // delete everything between start and end (inclusive) on given line
+        std::optional<CurPos> deleteRange(unsigned int line, unsigned int start, unsigned int end);
+        std::optional<CurPos> deleteRange(CurPos from, CurPos to);
 
     private:
         TextEngine(std::optional<std::vector<Line>> initial);
