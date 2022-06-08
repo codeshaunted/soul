@@ -25,14 +25,24 @@
 
 namespace soul {
 
+struct Vertex {
+	float x;
+	float y;
+	float z;
+	uint32_t color;
+};
+
 class Renderer {
 	public:
 		~Renderer();
 		static tl::expected<Renderer*, Error> create(Window* window);
-		void update();
+		Error update();
 	private:
-		Renderer(Window* new_window);
+		Renderer(Window* new_window, bgfx::ProgramHandle new_program, bgfx::DynamicVertexBufferHandle new_vertex_buffer, bgfx::DynamicIndexBufferHandle new_index_buffer);
 		Window* window;
+		bgfx::ProgramHandle program;
+		bgfx::DynamicVertexBufferHandle vertex_buffer;
+		bgfx::DynamicIndexBufferHandle index_buffer;
 };
 
 } // namespace soul

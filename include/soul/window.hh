@@ -18,13 +18,6 @@
 #ifndef SOUL_WINDOW_HH
 #define SOUL_WINDOW_HH
 
-#if defined(SOUL_IS_WINDOWS)
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#elif defined(SOUL_IS_LINUX)
-// #include <wayland-client-protocol.h>
-#endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
-
 #include <string>
 
 #include "tl/expected.hpp"
@@ -40,12 +33,7 @@ struct WindowSize {
 	int height;
 };
 
-#if defined(SOUL_IS_WINDOWS)
-typedef HWND WindowHandle;
-#elif defined(SOUL_IS_LINUX)
-// TODO: is this the best type to use? 
 typedef void* WindowHandle;
-#endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
 
 class Window {
 	public:
