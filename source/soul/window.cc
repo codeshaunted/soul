@@ -68,7 +68,7 @@ tl::expected<WindowSize, Error> Window::getSize() {
 	WindowSize size;
 
 	SOUL_GLFW_CATCH_ERROR();
-	glfwGetWindowSize(this->window, &size.height, &size.width);
+	glfwGetWindowSize(this->window, &size.width, &size.height);
 
 	if (SOUL_GLFW_GET_ERROR() == Error::SUCCESS) return size;
 	else return tl::unexpected(SOUL_GLFW_GET_ERROR());
