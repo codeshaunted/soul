@@ -27,7 +27,8 @@ set(SOUL_SOURCE_FILES
     "${SOUL_SOURCE_DIR}/window.cc"
     "${CMAKE_BINARY_DIR}/source/soul/shaders.cc"
     "${SOUL_SOURCE_DIR}/renderer.cc"
-    "${SOUL_SOURCE_DIR}/text_engine.cc")
+    "${SOUL_SOURCE_DIR}/text_engine.cc"
+    "${SOUL_SOURCE_DIR}/events.cc")
 
 set(SOUL_INCLUDE_DIRECTORIES
     "${CMAKE_SOURCE_DIR}/include/soul"
