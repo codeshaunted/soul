@@ -40,7 +40,8 @@ target_compile_definitions(soul PUBLIC ${SOUL_COMPILE_DEFINITIONS})
 
 # warnings
 if(MSVC)
-	target_compile_options(soul PRIVATE /W4 /WX)
+	# TODO: maybe turn /WX back on?
+	target_compile_options(soul PRIVATE /W4)# /WX)
 else()
 	target_compile_options(soul PRIVATE 
 		-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter)
