@@ -1,7 +1,7 @@
 // codeshaunted - soul
 // source/soul/window.cc
 // window class source file
-// Copyright 2021 codeshaunted
+// Copyright 2022 the soul team
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
 #include "window.hh"
 
 #include "bgfx/platform.h"
-
 #if defined(SOUL_IS_WINDOWS)
 #define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(SOUL_IS_LINUX)
@@ -99,7 +98,7 @@ tl::expected<bgfx::PlatformData, Error> Window::getPlatformData() {
 
 	ret.nwh = *maybe_nwh;
 
-#if defined(SOUL_IS_LINUX)
+#ifdef SOUL_IS_LINUX
 	// using x11, we also need to provide the display.
 	SOUL_GLFW_CATCH_ERROR();
 	auto ndt = glfwGetX11Display();
@@ -108,7 +107,7 @@ tl::expected<bgfx::PlatformData, Error> Window::getPlatformData() {
 		return tl::unexpected(SOUL_GLFW_GET_ERROR());
 	
 	ret.ndt = ndt;
-#endif
+#endif // SOUL_IS_LINUX
 
 	return ret;
 }

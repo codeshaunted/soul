@@ -1,6 +1,6 @@
 // codeshaunted - soul
-// source/soul/renderer.hh
-// renderer class header file
+// shaders/vertex.sh
+// vertex shader source file
 // Copyright 2022 the soul team
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,26 +15,12 @@
 // See the License for the specific language governing permissionsand
 // limitations under the License.
 
-#ifndef SOUL_RENDERER_HH
-#define SOUL_RENDERER_HH
+$input a_position, a_color0
+$output v_color0
 
-#include "tl/expected.hpp"
+#include <bgfx_shader.sh>
 
-#include "window.hh"
-#include "error.hh"
-
-namespace soul {
-
-class Renderer {
-	public:
-		~Renderer();
-		static tl::expected<Renderer*, Error> create(Window* window);
-		void update();
-	private:
-		Renderer(Window* new_window);
-		Window* window;
-};
-
-} // namespace soul
-
-#endif // SOUL_RENDERER_HH
+void main() {
+    gl_Position = mul(u_modelViewProj, vec4(a_position, 1.0));
+    v_color0 = a_color0;
+}

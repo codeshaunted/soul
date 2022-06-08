@@ -1,7 +1,7 @@
 # codeshaunted - soul
 # CMakeLists.txt
 # root CMake file
-# Copyright 2021 codeshaunted
+# Copyright 2022 the soul team
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,24 +25,36 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/build")
 
 # platform identification
-if (WIN32)
-  add_compile_definitions(SOUL_IS_WINDOWS)
-endif (WIN32)
+set(SOUL_IS_WINDOWS FALSE)
+set(SOUL_IS_UNIX FALSE)
+set(SOUL_IS_LINUX FALSE)
+set(SOUL_IS_MACOS FALSE)
 
-if (UNIX)
-  add_compile_definitions(SOUL_IS_UNIX)
-endif (UNIX)
+if(WIN32)
+    set(SOUL_IS_WINDOWS TRUE)
+    add_compile_definitions(SOUL_IS_WINDOWS)
+endif(WIN32)
 
-if (UNIX AND NOT APPLE)
-  add_compile_definitions(SOUL_IS_LINUX)
-endif (UNIX AND NOT APPLE)
+if(UNIX)
+    set(SOUL_IS_UNIX TRUE)
+    add_compile_definitions(SOUL_IS_UNIX)
+endif(UNIX)
 
-if (UNIX AND APPLE)
-  add_compile_definitions(SOUL_IS_MACOS)
-endif (UNIX AND APPLE)
+if(UNIX AND NOT APPLE)
+    set(SOUL_IS_LINUX TRUE)
+    add_compile_definitions(SOUL_IS_LINUX)
+endif(UNIX AND NOT APPLE)
+
+if(UNIX AND APPLE)
+    set(SOUL_IS_MACOS TRUE)
+    add_compile_definitions(SOUL_IS_MACOS)
+endif(UNIX AND APPLE)
 
 # third party
 add_subdirectory("third_party")
+
+# shaders
+add_subdirectory("shaders")
 
 # internal
 add_subdirectory("source")
@@ -50,7 +62,5 @@ add_subdirectory("source")
 option(SOUL_BUILD_TESTS "build soul tests" ON)
 
 if(SOUL_BUILD_TESTS) 
-
-  add_subdirectory("tests")
-
-endif()
+    add_subdirectory("tests")
+endif(SOUL_BUILD_TESTS)

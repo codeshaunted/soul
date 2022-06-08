@@ -1,7 +1,7 @@
 # codeshaunted - soul
 # third_party/CMakeLists.txt
 # third party directory CMake file
-# Copyright 2021 codeshaunted
+# Copyright 2022 the soul team
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
 add_subdirectory("glfw")
 
 # bgfx.cmake
-set(BGFX_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(BGFX_BUILD_TOOLS ON CACHE BOOL "" FORCE)
 set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BGFX_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory("bgfx.cmake")

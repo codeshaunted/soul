@@ -1,7 +1,7 @@
 // codeshaunted - soul
 // include/soul/window.hh
 // window class header file
-// Copyright 2021 codeshaunted
+// Copyright 2022 the soul team
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.

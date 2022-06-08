@@ -1,7 +1,7 @@
 # codeshaunted - soul
 # source/soul/CMakeLists.txt
-# source file directory CMake file
-# Copyright 2021 codeshaunted
+# soul source file directory CMake file
+# Copyright 2022 the soul team
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,6 +24,11 @@ set(SOUL_LINK_LIBRARIES
 set(SOUL_COMPILE_DEFINITIONS)
 
 configure_file("${CMAKE_SOURCE_DIR}/include/soul/config.hh.in" "config.hh")
+
+add_custom_command(
+    OUTPUT shaders.cc
+    COMMAND shader_pack ${CMAKE_SOURCE_DIR}/source/soul/shaders.cc.in ${CMAKE_CURRENT_BINARY_DIR}/shaders.cc ${CMAKE_BINARY_DIR}/shaders
+    DEPENDS shaders.cc.in)
 
 add_executable(soul ${SOUL_MAIN} ${SOUL_SOURCE_FILES})
 

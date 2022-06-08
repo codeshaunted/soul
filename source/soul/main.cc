@@ -1,7 +1,7 @@
 // codeshaunted - soul
 // source/soul/main.cc
-// entry point file
-// Copyright 2021 codeshaunted
+// soul entry point file
+// Copyright 2022 the soul team
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include "window.hh"
 #include "renderer.hh"
 #include "text_engine.hh"
+#include "shaders.hh"
 
 using namespace soul;
 
