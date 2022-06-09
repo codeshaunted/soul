@@ -60,7 +60,7 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 	bgfx::setPlatformData(platform_data.value());
 
 	bgfx::Init bgfx_init;
-	bgfx_init.type = bgfx::RendererType::Count; // TODO: config option?
+	bgfx_init.type = bgfx::RendererType::OpenGL; // TODO: config option?
 	bgfx_init.resolution.width = window_size.value().width;
 	bgfx_init.resolution.height = window_size.value().height;
 	bgfx_init.resolution.reset = BGFX_RESET_VSYNC; // TODO: config option?
@@ -75,7 +75,7 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 		1.0f,
 		0
 	);
-	bgfx::setViewRect(0, 0, 0, window_size.value().width, window_size.value().height);
+	bgfx::setViewRect(0, 0, 0, window_size->width, window_size->height);
 
 	auto new_program = Shaders::getProgram();
 	if (!new_program) return tl::unexpected(Error::UNKNOWN);
@@ -111,7 +111,9 @@ Error Renderer::update() {
 	auto window_size = this->window->getSize();
 	if (!window_size) return window_size.error();
 
-auto projection_matrix = 
+	bgfx::reset(window_size->width, window_size->height);
+
+	auto projection_matrix = 
 		glm::ortho(0.f, (float)window_size->width, (float)window_size->height, 0.f);
 
 	bgfx::setViewTransform(
@@ -119,6 +121,7 @@ auto projection_matrix =
 		glm::value_ptr(view_matrix), 
 		glm::value_ptr(projection_matrix)
 	);
+	bgfx::setViewRect(0, 0, 0, window_size->width, window_size->height);
 
 	bgfx::setVertexBuffer(0, this->vertex_buffer);
 	bgfx::setIndexBuffer(this->index_buffer);
