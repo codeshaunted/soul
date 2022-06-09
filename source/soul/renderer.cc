@@ -19,20 +19,38 @@
 
 #include "bgfx/bgfx.h"
 #include "bgfx/platform.h"
-#include "bx/math.h"
+// #include "bx/math.h"
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/scalar_constants.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
+
+#include "glm/fwd.hpp"
 #include "shaders.hh"
 
 namespace soul {
 
+// Vertex triangle_vertices[] = {
+// 	{-0.5f, -0.5f, 0.0f, 0xff0000ff},
+// 	{0.5f, -0.5f, 0.0f, 0xff00ff00},
+// 	{0.0f, 0.5f, 0.0f, 0xffff0000}
+// };
+
 Vertex triangle_vertices[] = {
-	{-0.5f, -0.5f, 0.0f, 0xff0000ff},
-	{0.5f, -0.5f, 0.0f, 0xff00ff00},
-	{0.0f, 0.5f, 0.0f, 0xffff0000}
+	{0.f, 0.f, 0.0f, 0xff0000ff},
+	{200.f, 100.f, 0.0f, 0xff00ff00},
+	{150.f, 200.f, 0.0f, 0xffff0000},
+	{300.f, 100.f, 0.0f, 0xff00ff00}, // in case the triangle is getting culled...
+	{250.f, 200.f, 0.0f, 0xffff0000},
+	{-100.f, -100.f, 0.f, 0xff00ff00}, // in case we're just looking at the wrong quadrant...
+	{-100.f, 100.f, 0.f, 0xffffffff},
+	{100.f, -100.f, 0.f, 0xffff00ff},
 };
 
 uint16_t triangle_indices[] = {
-	0, 1, 2
+	0, 1, 2, 1, 4, 3, 5, 6, 7, 7, 6, 5
 };
 
 Renderer::~Renderer() {
@@ -71,28 +89,50 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 
 	// TODO: move this somewhere else
 	bgfx::VertexLayout vertex_layout;
-	vertex_layout.begin().add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float).add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true).end();
+	vertex_layout
+		.begin()
+		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+		.end();
 	
-	bgfx::DynamicVertexBufferHandle new_vertex_buffer = bgfx::createDynamicVertexBuffer(bgfx::makeRef(triangle_vertices, sizeof(triangle_vertices)), vertex_layout);
-	bgfx::DynamicIndexBufferHandle new_index_buffer = bgfx::createDynamicIndexBuffer(bgfx::makeRef(triangle_indices, sizeof(triangle_indices)));
+	bgfx::DynamicVertexBufferHandle new_vertex_buffer = 
+		bgfx::createDynamicVertexBuffer(
+			bgfx::makeRef(triangle_vertices,
+			sizeof(triangle_vertices)),
+			vertex_layout
+		);
+	bgfx::DynamicIndexBufferHandle new_index_buffer = 
+		bgfx::createDynamicIndexBuffer(
+			bgfx::makeRef(
+				triangle_indices, 
+				sizeof(triangle_indices)
+			)
+		);
 
 	return new Renderer(new_window, *new_program, new_vertex_buffer, new_index_buffer);
 }
 
 Error Renderer::update() {
-	const bx::Vec3 at = { 0.0f, 0.0f, 0.0f };
-	const bx::Vec3 eye = { 0.0f, 0.0f, -5.0f };
-	float view_matrix[16];
-	bx::mtxLookAt(view_matrix, eye, at);
+	auto view_matrix =
+		// doesn't work:
+		// glm::lookAt(glm::vec3(0.f, 0.f, -5.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		// works:
+		glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -5.0));
 
 	auto window_size = this->window->getSize();
 	if (!window_size) return window_size.error();
 
-	// i have no idea how projection matrices work, stole these numbers
-	float projection_matrix[16];
-	bx::mtxProj(projection_matrix, 60.0f, (float)window_size->width / (float)window_size->height, 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+auto projection_matrix = 
+		// doesn't work:
+		// glm::ortho(0.f, (float)window_size->width, (float)window_size->height, 0.f);
+		// works:
+		glm::perspective(glm::radians(60.f), 4.f/3.f, 0.1f, 100.f);
 
-	bgfx::setViewTransform(0, view_matrix, projection_matrix);
+	bgfx::setViewTransform(
+		0, 
+		glm::value_ptr(view_matrix), 
+		glm::value_ptr(projection_matrix)
+	);
 
 	bgfx::setVertexBuffer(0, this->vertex_buffer);
 	bgfx::setIndexBuffer(this->index_buffer);
