@@ -1,6 +1,6 @@
 // codeshaunted - soul
-// include/soul/window.hh
-// window class header file
+// include/soul/events.hh
+// events class header file
 // Copyright 2022 the soul team
 //
 // Licensed under the Apache License, Version 2.0 (the "License");

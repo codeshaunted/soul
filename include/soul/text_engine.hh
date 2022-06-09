@@ -1,5 +1,5 @@
 // codeshaunted - soul
-// source/soul/text_engine.hh
+// include/soul/text_engine.hh
 // text engine class header file
 // Copyright 2022 the soul team
 //

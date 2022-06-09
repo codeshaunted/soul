@@ -1,5 +1,5 @@
 // codeshaunted - soul
-// source/soul/shaders.hh
+// include/soul/shaders.hh
 // shaders class header file
 // Copyright 2022 the soul team
 //

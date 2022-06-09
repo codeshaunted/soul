@@ -1,5 +1,5 @@
 // codeshaunted - soul
-// source/soul/renderer.hh
+// include/soul/renderer.hh
 // renderer class header file
 // Copyright 2022 the soul team
 //

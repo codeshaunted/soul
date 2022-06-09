@@ -1,5 +1,5 @@
 // codeshaunted - soul
-// source/soul/error.hh
+// include/soul/error.hh
 // error enum header file
 // Copyright 2022 the soul team
 //
