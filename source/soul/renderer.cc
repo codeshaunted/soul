@@ -26,8 +26,6 @@
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
-#include "glm/fwd.hpp"
 #include "shaders.hh"
 
 namespace soul {
@@ -42,15 +40,10 @@ Vertex triangle_vertices[] = {
 	{0.f, 0.f, 0.0f, 0xff0000ff},
 	{200.f, 100.f, 0.0f, 0xff00ff00},
 	{150.f, 200.f, 0.0f, 0xffff0000},
-	{300.f, 100.f, 0.0f, 0xff00ff00}, // in case the triangle is getting culled...
-	{250.f, 200.f, 0.0f, 0xffff0000},
-	{-100.f, -100.f, 0.f, 0xff00ff00}, // in case we're just looking at the wrong quadrant...
-	{-100.f, 100.f, 0.f, 0xffffffff},
-	{100.f, -100.f, 0.f, 0xffff00ff},
 };
 
 uint16_t triangle_indices[] = {
-	0, 1, 2, 1, 4, 3, 5, 6, 7, 7, 6, 5
+	0, 2, 1
 };
 
 Renderer::~Renderer() {
@@ -67,7 +60,7 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 	bgfx::setPlatformData(platform_data.value());
 
 	bgfx::Init bgfx_init;
-	bgfx_init.type = bgfx::RendererType::Count; // TODO: config option?
+	bgfx_init.type = bgfx::RendererType::OpenGL; // TODO: config option?
 	bgfx_init.resolution.width = window_size.value().width;
 	bgfx_init.resolution.height = window_size.value().height;
 	bgfx_init.resolution.reset = BGFX_RESET_VSYNC; // TODO: config option?
@@ -113,20 +106,13 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 }
 
 Error Renderer::update() {
-	auto view_matrix =
-		// doesn't work:
-		// glm::lookAt(glm::vec3(0.f, 0.f, -5.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-		// works:
-		glm::translate(glm::mat4(1.f), glm::vec3(0.f, 0.f, -5.0));
+	auto view_matrix =	glm::mat4(1.0f);
 
 	auto window_size = this->window->getSize();
 	if (!window_size) return window_size.error();
 
 auto projection_matrix = 
-		// doesn't work:
-		// glm::ortho(0.f, (float)window_size->width, (float)window_size->height, 0.f);
-		// works:
-		glm::perspective(glm::radians(60.f), 4.f/3.f, 0.1f, 100.f);
+		glm::ortho(0.f, (float)window_size->width, (float)window_size->height, 0.f);
 
 	bgfx::setViewTransform(
 		0, 
