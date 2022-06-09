@@ -70,6 +70,7 @@ tl::expected<Window*, Error> Window::create(int width, int height, std::string t
 	glfwSetCursorEnterCallback(window, Window::glfwCursorEnterLeaveCallback);
 	glfwSetMouseButtonCallback(window, Window::glfwMouseButtonCallback);
 	glfwSetScrollCallback(window, Window::glfwScrollCallback);
+	glfwSetWindowSizeCallback(window, Window::glfwWindowSizeCallback);
 
 	if (window && SOUL_GLFW_GET_ERROR() == Error::SUCCESS) return new Window(window);
 	else return tl::unexpected(SOUL_GLFW_GET_ERROR());
@@ -200,6 +201,12 @@ void Window::glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffs
 
 	// std::cout << "got scroll event: (" << xoffset << ", " << yoffset << ")" << std::endl;
 	latestEvent = ScrollEvent{xoffset, yoffset};
+}
+
+void Window::glfwWindowSizeCallback(GLFWwindow* window, int width, int height) {
+	CHECK_WINDOW_AWAIT(window)
+
+	latestEvent = WindowResizeEvent{(unsigned int)width, (unsigned int)height};
 }
 
 #undef CHECK_WINDOW_AWAIT

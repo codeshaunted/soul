@@ -66,6 +66,7 @@ class Window {
 		static void glfwCursorEnterLeaveCallback(GLFWwindow* window, int entered);
 		static void glfwMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 		static void glfwScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+		static void glfwWindowSizeCallback(GLFWwindow* window, int width, int height);
 
 		static Error initializeGLFW();
 		GLFWwindow* window;

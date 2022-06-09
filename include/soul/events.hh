@@ -101,6 +101,11 @@ public:
   double x, y;
 };
 
+struct WindowResizeEvent {
+public:
+  unsigned int width, height;
+};
+
 // there is just no good way to format this is there...
 typedef std::variant
     <
@@ -109,7 +114,8 @@ typedef std::variant
       MouseCursorPosEvent,
       MouseCursorEnterExitEvent,
       MouseButtonEvent,
-      ScrollEvent
+      ScrollEvent,
+      WindowResizeEvent
     >
   Event;
 
