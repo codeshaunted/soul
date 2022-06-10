@@ -43,10 +43,18 @@ Vertex triangle_vertices[] = {
 	{200.f, 100.f, 0.0f, 0xff00ff00},
 	{150.f, 200.f, 0.0f, 0xffff0000},
 	{200.f, 200.f, 0.0f, 0xffff0000},
+	{0.f, 0.f, 0.0f, 0xff0000ff},
+	{200.f, 100.f, 0.0f, 0xff00ff00},
+	{150.f, 200.f, 0.0f, 0xffff0000},
+	{200.f, 200.f, 0.0f, 0xffff0000},
+	{0.f, 0.f, 0.0f, 0xff0000ff},
+	{200.f, 100.f, 0.0f, 0xff00ff00},
+	{150.f, 200.f, 0.0f, 0xffff0000},
+	{200.f, 200.f, 0.0f, 0xffff0000},
 };
 
 uint16_t triangle_indices[] = {
-	0, 2, 1, 2, 3, 1
+	0, 2, 1, 2, 3, 1, 0, 2, 1, 2, 3, 1, 0, 2, 1, 2, 3, 1
 };
 
 Renderer::~Renderer() {
@@ -114,7 +122,6 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 void Renderer::setVertexAndIndexBuffers(std::vector<Vertex> &verts, std::vector<uint16_t> indices) {
 	auto vs = verts.size() * sizeof(Vertex);
 	auto is = indices.size() * sizeof(uint16_t);
-	std::cerr << "vs " << vs << " is " << is << std::endl; // "vs 64 is 12"
 	auto vmem = bgfx::copy(verts.data(), vs);
 	auto imem = bgfx::copy(indices.data(), is);
 	bgfx::update(this->vertex_buffer, 0, vmem);

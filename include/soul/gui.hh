@@ -19,7 +19,6 @@
 #define SOUL_GUI_HH
 
 #include <cstdint>
-#include <memory>
 #include <vector>
 
 #include "renderer.hh"
@@ -49,16 +48,23 @@ struct GNonLeaf : GNode {
   /**
    * If true, the two child nodes 
    */
-  bool vertical;
+  bool horizontal;
   float split_point;
-  std::unique_ptr<GNode> first;
-  std::unique_ptr<GNode> second;
+  GNode* first;
+  GNode* second;
 
   virtual bool shouldBeDrawn() override {
     return false;
   }
 
-  virtual ~GNonLeaf() override {}
+  static std::optional<GNonLeaf*> create(bool split_horizontal, float split, GNode* first, GNode* second);
+
+  virtual ~GNonLeaf() override {
+    delete first;
+    delete second;
+  }
+private:
+  GNonLeaf(bool split_horizontal, float split, GNode* first, GNode* second);
 };
 
 class GUI {
@@ -68,7 +74,11 @@ public:
   std::pair<std::vector<Vertex>, std::vector<uint16_t>>
   toGeometry(unsigned int window_width, unsigned int window_height);
 // private:
-  std::unique_ptr<GNode> tree;
+  GNode* tree;
+
+  ~GUI() {
+    delete tree;
+  }
 private:
   GUI() {
     this->tree = nullptr;

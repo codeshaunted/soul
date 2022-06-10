@@ -50,7 +50,14 @@ int main(int argc, char** argv) {
 	}
 
 	auto gui = GUI::create();
-	gui.tree = std::make_unique<GLeaf>(0xff00ff00);
+	// gui.tree = std::make_unique<GLeaf>(0xff00ff00);
+	auto leaf1 = new GLeaf(0xff00ff00);
+	auto leaf2 = new GLeaf(0xffff0000);
+	auto leaf3 = new GLeaf(0xff0000ff);
+	auto node1 = GNonLeaf::create(true, 0.5, leaf1, leaf2).value();
+	auto root = GNonLeaf::create(false, 0.3, leaf3, node1).value();
+	gui.tree = root;
+
 	auto tris = gui.toGeometry(window.value()->getSize()->width - 2, window.value()->getSize()->height - 2);
 
 	// debug

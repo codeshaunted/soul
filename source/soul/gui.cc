@@ -1,5 +1,6 @@
 #include "gui.hh"
 #include <cstdint>
+#include <optional>
 
 namespace soul {
 
@@ -20,6 +21,23 @@ uint16_t addVert(std::vector<Vertex>& vec, Vertex to_add) {
 	uint16_t idx = vec.size();
 	vec.push_back(to_add);
 	return idx;
+}
+
+std::optional<GNonLeaf*> GNonLeaf::create(bool horizontal, float split, GNode *first, GNode *second) {
+	if (
+		split >= 1 || 
+		split <= 0 ||
+		!first ||
+		!second
+	) return std::nullopt;
+	return new GNonLeaf(horizontal, split, first, second);
+}
+
+GNonLeaf::GNonLeaf(bool split_horizontal, float split, GNode* first, GNode* second) {
+	this->horizontal = split_horizontal;
+	this->split_point = split;
+	this->first = first;
+	this->second = second;
 }
 
 std::pair<std::vector<Vertex>, std::vector<uint16_t>>
@@ -56,7 +74,7 @@ void leavesToRectsRec(std::vector<Rect>& out, Rect& current, GNode& node) {
 		// calculate Rects for each child, and recurse them.
 		GNonLeaf& node_nl = static_cast<GNonLeaf&>(node);
 		Rect r1, r2;
-		if (node_nl.vertical) {
+		if (node_nl.horizontal) {
 			r1.width = current.width;
 			r2.width = current.width;
 			r1.x = current.x;
