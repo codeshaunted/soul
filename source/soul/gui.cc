@@ -15,21 +15,21 @@ struct Rect {
 
 void leavesToRectsRec(std::vector<Rect>& out, Rect& current, GNode& node);
 
-int addVert(std::vector<Vertex>& vec, Vertex to_add) {
+uint16_t addVert(std::vector<Vertex>& vec, Vertex to_add) {
 	// TODO: don't add duplicate verts?
-	int idx = vec.size();
+	uint16_t idx = vec.size();
 	vec.push_back(to_add);
 	return idx;
 }
 
-std::pair<std::vector<Vertex>, std::vector<unsigned int>>
+std::pair<std::vector<Vertex>, std::vector<uint16_t>>
 GUI::toGeometry(unsigned int window_width, unsigned int window_height) {
 	Rect root {0.f, 0.f, static_cast<float>(window_width), static_cast<float>(window_height), 0xff000000};
 	std::vector<Rect> rects;
 	leavesToRectsRec(rects, root, *this->tree);
 
 	std::vector<Vertex> verts_ret;
-	std::vector<unsigned int> idx_ret;
+	std::vector<uint16_t> idx_ret;
 
 	for (auto r : rects) {
 		auto tl = addVert(verts_ret, Vertex{r.x, r.y, 0.f, r.color});

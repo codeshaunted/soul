@@ -27,7 +27,7 @@
 namespace soul {
 
 struct GNode {
-  virtual bool shouldBeDrawn();
+  virtual bool shouldBeDrawn() {return false;};
   virtual ~GNode() {}
 };
 
@@ -65,7 +65,7 @@ class GUI {
 public:
   static GUI create();
 
-  std::pair<std::vector<Vertex>, std::vector<unsigned int>>
+  std::pair<std::vector<Vertex>, std::vector<uint16_t>>
   toGeometry(unsigned int window_width, unsigned int window_height);
 // private:
   std::unique_ptr<GNode> tree;
