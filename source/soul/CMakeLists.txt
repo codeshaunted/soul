@@ -44,5 +44,5 @@ if(MSVC)
 	target_compile_options(soul PRIVATE /W4)# /WX)
 else()
 	target_compile_options(soul PRIVATE 
-		-Wall -Wextra -Wpedantic -Wno-unused-parameter)
+		-Wall -Wextra -Wpedantic -Wno-unused-parameter -fno-rtti)
 endif()

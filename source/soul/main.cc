@@ -16,6 +16,7 @@
 // limitations under the License.
 
 #include <iostream>
+#include <memory>
 
 #include "GLFW/glfw3.h"
 #include "bgfx/bgfx.h"
@@ -25,6 +26,7 @@
 #include "renderer.hh"
 #include "text_engine.hh"
 #include "shaders.hh"
+#include "gui.hh"
 
 using namespace soul;
 
@@ -46,6 +48,9 @@ int main(int argc, char** argv) {
 			<< ")" << std::endl;
 		return 1;
 	}
+
+	auto gui = GUI::create();
+	gui.tree = std::make_unique<GLeaf>(0xffffffff);
 
 	while (!window.value()->shouldClose()) {
 		renderer.value()->update();
