@@ -50,7 +50,21 @@ int main(int argc, char** argv) {
 	}
 
 	auto gui = GUI::create();
-	gui.tree = std::make_unique<GLeaf>(0xffffffff);
+	gui.tree = std::make_unique<GLeaf>(0xff00ff00);
+	auto tris = gui.toGeometry(window.value()->getSize()->width - 2, window.value()->getSize()->height - 2);
+
+	// debug
+	int idx = 0;
+	for (auto v : tris.first) {
+		std::cout << idx << " (" << v.x << ", " << v.y << ", " << v.z << ") " << std::hex << v.color << std::endl;
+		idx++;
+	}
+	for (auto i : tris.second) {
+		std::cout << i << " ";
+	}
+	std::cout << std::endl;
+
+	renderer.value()->setVertexAndIndexBuffers(tris.first, tris.second);
 
 	while (!window.value()->shouldClose()) {
 		renderer.value()->update();

@@ -47,6 +47,9 @@ uint16_t triangle_indices[] = {
 };
 
 Renderer::~Renderer() {
+	bgfx::destroy(this->vertex_buffer);
+	bgfx::destroy(this->index_buffer);
+	bgfx::destroy(this->program);
 	bgfx::shutdown();
 }
 
@@ -103,6 +106,13 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 		);
 
 	return new Renderer(new_window, *new_program, new_vertex_buffer, new_index_buffer);
+}
+
+void Renderer::setVertexAndIndexBuffers(std::vector<Vertex> &verts, std::vector<unsigned int> indices) {
+	auto vmem = bgfx::copy(verts.data(), verts.size() * sizeof(Vertex));
+	auto imem = bgfx::copy(indices.data(), indices.size() * sizeof(unsigned int));
+	bgfx::update(this->vertex_buffer, 0, vmem);
+	bgfx::update(this->index_buffer, 0, imem);
 }
 
 Error Renderer::update() {

@@ -22,6 +22,7 @@
 
 #include "window.hh"
 #include "error.hh"
+#include <vector>
 
 namespace soul {
 
@@ -36,6 +37,7 @@ class Renderer {
 	public:
 		~Renderer();
 		static tl::expected<Renderer*, Error> create(Window* window);
+		void setVertexAndIndexBuffers(std::vector<Vertex>& verts, std::vector<unsigned int> indices);
 		Error update();
 	private:
 		Renderer(Window* new_window, bgfx::ProgramHandle new_program, bgfx::DynamicVertexBufferHandle new_vertex_buffer, bgfx::DynamicIndexBufferHandle new_index_buffer);

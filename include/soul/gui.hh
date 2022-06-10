@@ -28,6 +28,7 @@ namespace soul {
 
 struct GNode {
   virtual bool shouldBeDrawn();
+  virtual ~GNode() {}
 };
 
 struct GLeaf : GNode {
@@ -40,6 +41,8 @@ struct GLeaf : GNode {
   GLeaf(uint32_t box_color) {
     this->color = box_color;
   }
+
+  virtual ~GLeaf() override {}
 };
 
 struct GNonLeaf : GNode {
@@ -54,6 +57,8 @@ struct GNonLeaf : GNode {
   virtual bool shouldBeDrawn() override {
     return false;
   }
+
+  virtual ~GNonLeaf() override {}
 };
 
 class GUI {
