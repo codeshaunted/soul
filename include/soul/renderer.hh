@@ -65,8 +65,8 @@ struct TextVertex {
 	float y;
 	float z;
 	uint32_t color;
-	uint16_t u;
-	uint16_t v;
+	int16_t u;
+	int16_t v;
 
 	static bgfx::VertexLayout layout;
 	static bool initialized;
@@ -77,7 +77,7 @@ static_assert(offsetof(TextVertex, y) == 4, "offset of vertex y must be 4");
 static_assert(offsetof(TextVertex, z) == 8, "offset of vertex z must be 8");
 static_assert(offsetof(TextVertex, color) == 12, "offset of vertex z must be 12");
 static_assert(offsetof(TextVertex, u) == 16, "offset of vertex u must be 16");
-static_assert(offsetof(TextVertex, v) == 18, "offset of vertex u must be 18");
+static_assert(offsetof(TextVertex, v) == 18, "offset of vertex v must be 18");
 
 class Renderer {
 	public:

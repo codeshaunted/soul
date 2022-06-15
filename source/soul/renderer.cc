@@ -53,7 +53,7 @@ void Vertex::init() {
 	Vertex::layout
 		.begin()
 		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
+		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true, true)
 		.end();
 	Vertex::initialized = true;
 }
@@ -65,6 +65,7 @@ void TextVertex::init() {
 		.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
 		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Int16, true, true)
+		// .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float, true, true)
 		.end();
 	TextVertex::initialized = true;
 }
@@ -89,7 +90,7 @@ uint16_t triangle_indices[] = {
 };
 
 TextVertex text_verts[] = {
-	{0.f, 200.f, 0.f, 0xffffffff, 0, 0x0000},     // bl
+	{0.f, 200.f, 0.f, 0xffffffff, 0, 0},     // bl
 	{0.f, 0.f, 0.f, 0xffff00ff, 0, 0x7fff},     // tl
 	{100.f, 0.f, 0.f, 0xffffffff, 0x7fff, 0x7fff},// tr
 	{100.f, 200.f, 0.f, 0xffffffff, 0x7fff, 0},     // br
@@ -184,8 +185,7 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 			)
 		);
 	
-	auto uniform_handle = bgfx::createUniform("text", bgfx::UniformType::Sampler);
-	
+	auto uniform_handle = bgfx::createUniform("s_CharTexture", bgfx::UniformType::Sampler);
 	// ?????? no idea if this is right
 	uint64_t state = 0
 					| BGFX_STATE_WRITE_RGB
@@ -224,7 +224,7 @@ Error generate_font_textures(std::map<char, Character>& out, const char* name, u
 
 	FT_Set_Pixel_Sizes(font_face, 0, line_height_px);
 
-	if (!bgfx::isTextureValid(0, false, 1, bgfx::TextureFormat::R8U, 0)) {
+	if (!bgfx::isTextureValid(0, false, 1, bgfx::TextureFormat::R8, 0)) {
 		std::cerr << "texture format is invalid!" << std::endl;
 		return Error::UNKNOWN;
 	}
@@ -232,46 +232,71 @@ Error generate_font_textures(std::map<char, Character>& out, const char* name, u
 	for (uint8_t c = 0; c < 128; c++) {
 		FT_TRY(FT_Load_Char(font_face, c, FT_LOAD_RENDER), return Error::FREETYPE_ERR);
 		
-		if (!font_face->glyph->bitmap.width) continue;
-		
 		// generate bgfx texture from glyph bitmap
 		Character result;
 		
-		// bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
-		if (font_face->glyph->bitmap.pitch < 0) {
-			std::cerr << "negative pitch unimplemented" << std::endl;
-			return Error::FREETYPE_ERR;
-		}
-		//const bgfx::Memory* 
-		result.texture.mem = bgfx::copy(
-			font_face->glyph->bitmap.buffer,
-			font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows
-		);
-		result.texture.handle = bgfx::createTexture2D(
-			font_face->glyph->bitmap.width,
-			font_face->glyph->bitmap.rows,
-			false,
-			1,
-			bgfx::TextureFormat::R8U,
-			BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP, // is this right??? should this just use 0?
-			result.texture.mem
-		);
+		result.texture.handle = BGFX_INVALID_HANDLE;
+		result.texture.mem = nullptr;
+		// if there is anything to draw (basically anything except ' '), create the texture
+		if (font_face->glyph->bitmap.width) {
+			if (font_face->glyph->bitmap.pitch < 0) {
+				std::cerr << "negative pitch unimplemented" << std::endl;
+				return Error::FREETYPE_ERR;
+			}
 
-		if (!bgfx::isValid(result.texture.handle)) {
-			std::cerr << "texture created was invalid!" << std::endl;
-			return Error::UNKNOWN;
-		}
+			uint8_t* dummy = new uint8_t[font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows];
+			memset(dummy, 255, font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows);
+			// result.texture.mem = bgfx::copy(
+			// 	font_face->glyph->bitmap.buffer,
+			// 	font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows
+			// );
+			result.texture.mem = bgfx::copy(
+				dummy,
+				font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows
+			);
+			result.texture.handle = bgfx::createTexture2D(
+				font_face->glyph->bitmap.width,
+				font_face->glyph->bitmap.rows,
+				false,
+				1,
+				bgfx::TextureFormat::R8,
+				BGFX_SAMPLER_MAG_POINT
+				| BGFX_SAMPLER_MIN_POINT
+				| BGFX_SAMPLER_U_MIRROR
+				| BGFX_SAMPLER_V_MIRROR, // is this right??? should this just use 0?
+				result.texture.mem
+			);
 
-		bgfx::calcTextureSize(
-			result.texture.info,
-			font_face->glyph->bitmap.width,
-			font_face->glyph->bitmap.rows,
-			1, // is this the right value???? hopefully it doesn't matter...
-			false,
-			false,
-			1,
-			bgfx::TextureFormat::R8U
-		);
+			if (!bgfx::isValid(result.texture.handle)) {
+				std::cerr << "texture created was invalid!" << std::endl;
+				return Error::UNKNOWN;
+			}
+
+			bgfx::calcTextureSize(
+				result.texture.info,
+				font_face->glyph->bitmap.width,
+				font_face->glyph->bitmap.rows,
+				1, // is this the right value???? hopefully it doesn't matter...
+				false,
+				false,
+				1,
+				bgfx::TextureFormat::R8
+			);
+
+			// FIXME remove this
+			if (c == 'c') {
+				for (int y = font_face->glyph->bitmap.rows-1; y >= 0; y--) {
+					for (unsigned int x = 0; x < font_face->glyph->bitmap.width; x++) {
+						uint8_t c = font_face->glyph->bitmap.buffer[y * font_face->glyph->bitmap.width + x];
+						constexpr const char* palette[] = {" ", ".", "-", "~", "+", "="};
+						auto i = c/51;
+						// std::cout << std::hex << i;
+						std::cout << palette[i];
+					}
+					std::cout << std::endl;
+				}
+			}
+		}
 
 		result.size = glm::ivec2(font_face->glyph->bitmap.width, font_face->glyph->bitmap.rows);
 		result.bearing = glm::ivec2(font_face->glyph->bitmap_left, font_face->glyph->bitmap_top);
