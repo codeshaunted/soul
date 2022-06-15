@@ -244,14 +244,8 @@ Error generate_font_textures(std::map<char, Character>& out, const char* name, u
 				return Error::FREETYPE_ERR;
 			}
 
-			uint8_t* dummy = new uint8_t[font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows];
-			memset(dummy, 255, font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows);
-			// result.texture.mem = bgfx::copy(
-			// 	font_face->glyph->bitmap.buffer,
-			// 	font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows
-			// );
 			result.texture.mem = bgfx::copy(
-				dummy,
+				font_face->glyph->bitmap.buffer,
 				font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows
 			);
 			result.texture.handle = bgfx::createTexture2D(
