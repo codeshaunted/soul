@@ -89,14 +89,16 @@ uint16_t triangle_indices[] = {
 };
 
 TextVertex text_verts[] = {
-	{10.f, 58.f, 0.f, 0xffffffff, 0, 0x0000},     // bl
-	{10.f, 10.f, 0.f, 0xffffffff, 0, 0x7fff},     // tl
-	{34.f, 10.f, 0.f, 0xffffffff, 0x7fff, 0x7fff},// tr
-	{34.f, 58.f, 0.f, 0xffffffff, 0x7fff, 0},     // br
+	{0.f, 200.f, 0.f, 0xffffffff, 0, 0x0000},     // bl
+	{0.f, 0.f, 0.f, 0xffff00ff, 0, 0x7fff},     // tl
+	{100.f, 0.f, 0.f, 0xffffffff, 0x7fff, 0x7fff},// tr
+	{100.f, 200.f, 0.f, 0xffffffff, 0x7fff, 0},     // br
 };
-
 uint32_t text_indices[] = {
-	0, 2, 1, 0, 3, 2
+//bl tr tl bl br tr
+	// 0, 2, 1, 0, 3, 2
+//tl tr bl tr br bl
+	1, 2, 0, 2, 3, 0
 };
 
 Renderer::~Renderer() {
@@ -107,6 +109,9 @@ Renderer::~Renderer() {
 	bgfx::destroy(this->text_index_buffer);
 	bgfx::destroy(this->text_program);
 	bgfx::destroy(this->text_texture_uniform);
+	for (auto & [k, v]: this->char_map) {
+		bgfx::destroy(v.texture.handle);
+	}
 	bgfx::shutdown();
 }
 
@@ -140,7 +145,7 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 	auto new_program = Shaders::getProgram();
 	if (!new_program) return tl::unexpected(Error::UNKNOWN);
 
-	auto text_program = Shaders::getProgram();
+	auto text_program = Shaders::getTextProgram();
 	if (!text_program) return tl::unexpected(Error::UNKNOWN);
 
 	// does nothing if they are already initialized.
@@ -182,11 +187,9 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 					| BGFX_STATE_WRITE_RGB
 					| BGFX_STATE_WRITE_A
 					// | BGFX_STATE_WRITE_Z
-					// | BGFX_STATE_CULL_CCW
-					| BGFX_STATE_MSAA
+					| BGFX_STATE_CULL_CW
+					// | BGFX_STATE_MSAA
 					| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
-	
-	bgfx::setState(state);
 	
 	auto r = new Renderer(
 		new_window,
@@ -298,7 +301,7 @@ Error Renderer::update() {
 	auto window_size = this->window->getSize();
 	if (!window_size) return window_size.error();
 
-	bgfx::reset(window_size->width, window_size->height);
+	// bgfx::reset(window_size->width, window_size->height);
 
 	auto projection_matrix = 
 		glm::ortho(0.f, (float)window_size->width, (float)window_size->height, 0.f);
@@ -309,6 +312,10 @@ Error Renderer::update() {
 		glm::value_ptr(projection_matrix)
 	);
 	bgfx::setViewRect(0, 0, 0, window_size->width, window_size->height);
+	
+	bgfx::setState(this->bgfx_state_flags);
+
+	bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
 
 	// main draw
 	// bgfx::setVertexBuffer(0, this->vertex_buffer);
@@ -316,9 +323,10 @@ Error Renderer::update() {
 	// bgfx::submit(0, this->program);
 
 	// draw text
+	Character& char_obj = this->char_map.at('S');
 	bgfx::setVertexBuffer(0, this->text_vertex_buffer);
 	bgfx::setIndexBuffer(this->text_index_buffer);
-	bgfx::setTexture(0, this->text_texture_uniform, this->char_map.at('S').texture.handle);
+	bgfx::setTexture(0, this->text_texture_uniform, char_obj.texture.handle);
 	bgfx::submit(0, this->text_program);
 
 	bgfx::frame();
