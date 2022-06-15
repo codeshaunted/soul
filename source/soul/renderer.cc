@@ -103,6 +103,10 @@ Renderer::~Renderer() {
 	bgfx::destroy(this->vertex_buffer);
 	bgfx::destroy(this->index_buffer);
 	bgfx::destroy(this->program);
+	bgfx::destroy(this->text_vertex_buffer);
+	bgfx::destroy(this->text_index_buffer);
+	bgfx::destroy(this->text_program);
+	bgfx::destroy(this->text_texture_uniform);
 	bgfx::shutdown();
 }
 
@@ -159,15 +163,15 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 
 	bgfx::DynamicVertexBufferHandle new_text_vertex_buffer = 
 		bgfx::createDynamicVertexBuffer(
-			bgfx::makeRef(triangle_vertices,
-			sizeof(triangle_vertices)),
-			Vertex::layout
+			bgfx::makeRef(text_verts,
+			sizeof(text_verts)),
+			TextVertex::layout
 		);
 	bgfx::DynamicIndexBufferHandle new_text_index_buffer = 
 		bgfx::createDynamicIndexBuffer(
 			bgfx::makeRef(
-				triangle_indices, 
-				sizeof(triangle_indices)
+				text_indices, 
+				sizeof(text_indices)
 			)
 		);
 	
@@ -222,9 +226,12 @@ Error generate_font_textures(std::map<char, Character>& out, const char* name, u
 
 	for (uint8_t c = 0; c < 128; c++) {
 		FT_TRY(FT_Load_Char(font_face, c, FT_LOAD_RENDER), return Error::FREETYPE_ERR);
+		
+		if (!font_face->glyph->bitmap.width) continue;
+		
 		// generate bgfx texture from glyph bitmap
 		Character result;
-
+		
 		// bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
 		if (font_face->glyph->bitmap.pitch < 0) {
 			std::cerr << "negative pitch unimplemented" << std::endl;
@@ -304,9 +311,9 @@ Error Renderer::update() {
 	bgfx::setViewRect(0, 0, 0, window_size->width, window_size->height);
 
 	// main draw
-	bgfx::setVertexBuffer(0, this->vertex_buffer);
-	bgfx::setIndexBuffer(this->index_buffer);
-	bgfx::submit(0, this->program);
+	// bgfx::setVertexBuffer(0, this->vertex_buffer);
+	// bgfx::setIndexBuffer(this->index_buffer);
+	// bgfx::submit(0, this->program);
 
 	// draw text
 	bgfx::setVertexBuffer(0, this->text_vertex_buffer);

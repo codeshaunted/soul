@@ -28,5 +28,5 @@ void main() {
 	result.y = v_color0.y;
 	result.z = v_color0.z;
 	result.w = texture2D(text, v_texcoord0).r;
-	gl_FragColor = result; //v_color0;
+	gl_FragColor = vec4(1.0, 0.0, 0.0, 0.0); //v_color0;
 }
