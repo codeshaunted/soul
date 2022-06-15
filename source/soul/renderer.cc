@@ -37,13 +37,9 @@
 
 #include "shaders.hh"
 
-namespace soul {
+#define LINE_HEIGHT 48
 
-// Vertex triangle_vertices[] = {
-// 	{-0.5f, -0.5f, 0.0f, 0xff0000ff},
-// 	{0.5f, -0.5f, 0.0f, 0xff00ff00},
-// 	{0.0f, 0.5f, 0.0f, 0xffff0000}
-// };
+namespace soul {
 
 bgfx::VertexLayout Vertex::layout;
 bool Vertex::initialized = false;
@@ -73,8 +69,6 @@ void TextVertex::init() {
 	TextVertex::initialized = true;
 }
 
-Error generate_font_textures(std::map<char, Character>& out, const char* name);
-
 Vertex triangle_vertices[] = {
 	{0.f, 0.f, 0.0f, 0xff0000ff},
 	{200.f, 100.f, 0.0f, 0xff00ff00},
@@ -92,6 +86,17 @@ Vertex triangle_vertices[] = {
 
 uint16_t triangle_indices[] = {
 	0, 2, 1, 2, 3, 1, 0, 2, 1, 2, 3, 1, 0, 2, 1, 2, 3, 1
+};
+
+TextVertex text_verts[] = {
+	{10.f, 58.f, 0.f, 0xffffffff, 0, 0x0000},     // bl
+	{10.f, 10.f, 0.f, 0xffffffff, 0, 0x7fff},     // tl
+	{34.f, 10.f, 0.f, 0xffffffff, 0x7fff, 0x7fff},// tr
+	{34.f, 58.f, 0.f, 0xffffffff, 0x7fff, 0},     // br
+};
+
+uint32_t text_indices[] = {
+	0, 2, 1, 0, 3, 2
 };
 
 Renderer::~Renderer() {
@@ -151,25 +156,62 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 				sizeof(triangle_indices)
 			)
 		);
+
+	bgfx::DynamicVertexBufferHandle new_text_vertex_buffer = 
+		bgfx::createDynamicVertexBuffer(
+			bgfx::makeRef(triangle_vertices,
+			sizeof(triangle_vertices)),
+			Vertex::layout
+		);
+	bgfx::DynamicIndexBufferHandle new_text_index_buffer = 
+		bgfx::createDynamicIndexBuffer(
+			bgfx::makeRef(
+				triangle_indices, 
+				sizeof(triangle_indices)
+			)
+		);
 	
-	auto r = new Renderer(new_window, *new_program, *text_program, new_vertex_buffer, new_index_buffer);
+	auto uniform_handle = bgfx::createUniform("text", bgfx::UniformType::Sampler);
+	
+	// ?????? no idea if this is right
+	uint64_t state = 0
+					| BGFX_STATE_WRITE_RGB
+					| BGFX_STATE_WRITE_A
+					// | BGFX_STATE_WRITE_Z
+					// | BGFX_STATE_CULL_CCW
+					| BGFX_STATE_MSAA
+					| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
+	
+	bgfx::setState(state);
+	
+	auto r = new Renderer(
+		new_window,
+		*new_program,
+		*text_program,
+		new_vertex_buffer,
+		new_index_buffer,
+		new_text_vertex_buffer,
+		new_text_index_buffer,
+		uniform_handle,
+		state
+	);
 
-	// ==== freetype setup ====
-
-	auto g = generate_font_textures(r->char_map, "CascadiaCode.ttf");
+	auto g = generate_font_textures(r->char_map, "CascadiaCode.ttf", LINE_HEIGHT);
 	if (g != Error::SUCCESS) return tl::unexpected(g);
 
 	return r;
 }
 
-Error generate_font_textures(std::map<char, Character>& out, const char* name) {
+Error generate_font_textures(std::map<char, Character>& out, const char* name, uint32_t line_height_px) {
 	FT_Library ft;
 	FT_TRY(FT_Init_FreeType(&ft), return Error::FREETYPE_ERR);
 
 	FT_Face font_face;
-	FT_TRY(FT_New_Face(ft, "CascadiaCode.ttf", 0, &font_face), return Error::FREETYPE_ERR);
+	FT_TRY(FT_New_Face(ft, "CascadiaCode.ttf", 0, &font_face), 
+		std::cerr << "failed to get font" << std::endl; return Error::FREETYPE_ERR
+	);
 
-	FT_Set_Pixel_Sizes(font_face, 0, 48);
+	FT_Set_Pixel_Sizes(font_face, 0, line_height_px);
 
 	// FT_TRY(FT_Load_Char(r->font_face, 'X', FT_LOAD_RENDER), return tl::unexpected(Error::FREETYPE_ERR));
 
@@ -261,10 +303,17 @@ Error Renderer::update() {
 	);
 	bgfx::setViewRect(0, 0, 0, window_size->width, window_size->height);
 
+	// main draw
 	bgfx::setVertexBuffer(0, this->vertex_buffer);
 	bgfx::setIndexBuffer(this->index_buffer);
-
 	bgfx::submit(0, this->program);
+
+	// draw text
+	bgfx::setVertexBuffer(0, this->text_vertex_buffer);
+	bgfx::setIndexBuffer(this->text_index_buffer);
+	bgfx::setTexture(0, this->text_texture_uniform, this->char_map.at('S').texture.handle);
+	bgfx::submit(0, this->text_program);
+
 	bgfx::frame();
 
 	return Error::SUCCESS;
@@ -275,13 +324,21 @@ Renderer::Renderer(
 	bgfx::ProgramHandle new_program,
 	bgfx::ProgramHandle text_program,
 	bgfx::DynamicVertexBufferHandle new_vertex_buffer,
-	bgfx::DynamicIndexBufferHandle new_index_buffer
+	bgfx::DynamicIndexBufferHandle new_index_buffer,
+	bgfx::DynamicVertexBufferHandle new_text_vertex_buffer,
+	bgfx::DynamicIndexBufferHandle new_text_index_buffer,
+	bgfx::UniformHandle new_uniform_handle,
+	uint64_t state
 ) {
 	this->window = new_window;
 	this->program = new_program;
 	this->text_program = text_program;
 	this->vertex_buffer = new_vertex_buffer;
 	this->index_buffer = new_index_buffer;
+	this->text_vertex_buffer = new_text_vertex_buffer;
+	this->text_index_buffer = new_text_index_buffer;
+	this->text_texture_uniform = new_uniform_handle;
+	this->bgfx_state_flags = state;
 }
 
 } // namespace soul

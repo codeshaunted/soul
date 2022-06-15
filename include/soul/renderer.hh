@@ -86,15 +86,30 @@ class Renderer {
 		void setVertexAndIndexBuffers(std::vector<Vertex>& verts, std::vector<uint16_t> indices);
 		Error update();
 	private:
-		// Renderer(Window* new_window, bgfx::ProgramHandle new_program, bgfx::DynamicVertexBufferHandle new_vertex_buffer, bgfx::DynamicIndexBufferHandle new_index_buffer);
-		Renderer(Window* new_window, bgfx::ProgramHandle new_program, bgfx::ProgramHandle text_program, bgfx::DynamicVertexBufferHandle new_vertex_buffer, bgfx::DynamicIndexBufferHandle new_index_buffer);
+		Renderer(
+			Window* new_window,
+			bgfx::ProgramHandle new_program,
+			bgfx::ProgramHandle text_program,
+			bgfx::DynamicVertexBufferHandle new_vertex_buffer,
+			bgfx::DynamicIndexBufferHandle new_index_buffer,
+			bgfx::DynamicVertexBufferHandle new_text_vertex_buffer,
+			bgfx::DynamicIndexBufferHandle new_text_index_buffer,
+			bgfx::UniformHandle new_uniform_handle,
+			uint64_t state
+		);
 		Window* window;
 		bgfx::ProgramHandle program;
 		bgfx::ProgramHandle text_program;
 		bgfx::DynamicVertexBufferHandle vertex_buffer;
 		bgfx::DynamicIndexBufferHandle index_buffer;
+		bgfx::DynamicVertexBufferHandle text_vertex_buffer;
+		bgfx::DynamicIndexBufferHandle text_index_buffer;
 		std::map<char, Character> char_map;
+		uint64_t bgfx_state_flags;
+		bgfx::UniformHandle text_texture_uniform;
 };
+
+Error generate_font_textures(std::map<char, Character>& out, const char* name, uint32_t line_height_px);
 
 } // namespace soul
 
