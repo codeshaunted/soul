@@ -19,7 +19,8 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/sources.cmake")
 
 set(SOUL_LINK_LIBRARIES
 	glfw
-	bgfx)
+	bgfx
+	freetype)
 
 set(SOUL_COMPILE_DEFINITIONS)
 

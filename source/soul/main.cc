@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
 	auto root = GNonLeaf::create(false, 0.3, leaf3, node1).value();
 	gui.tree = root;
 
-	auto tris = gui.toGeometry(window.value()->getSize()->width - 2, window.value()->getSize()->height - 2);
+	auto tris = gui.toGeometry(window.value()->getSize()->width, window.value()->getSize()->height);
 
 	// debug
 	int idx = 0;
@@ -82,3 +82,5 @@ int main(int argc, char** argv) {
 	delete *renderer;
 	Window::terminateBackend();
 }
+
+#undef FT_TRY

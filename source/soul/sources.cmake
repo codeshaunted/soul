@@ -38,4 +38,5 @@ set(SOUL_INCLUDE_DIRECTORIES
     "${CMAKE_SOURCE_DIR}/third_party/glfw/include"
     "${CMAKE_SOURCE_DIR}/third_party/bgfx.cmake/bgfx/include"
     "${CMAKE_SOURCE_DIR}/third_party/bgfx.cmake/bx/include"
-    "${CMAKE_SOURCE_DIR}/third_party/glm")
+    "${CMAKE_SOURCE_DIR}/third_party/glm"
+    "${CMAKE_SOURCE_DIR}/third_party/freetype/include")

@@ -29,7 +29,7 @@ set_source_files_properties("${CMAKE_BINARY_DIR}/source/soul/shaders.cc" PROPERT
 
 add_executable(soul_tests ${SOUL_TEST_SOURCES} ${SOUL_SOURCE_FILES})
 # need to link the same libs as the main executable
-target_link_libraries(soul_tests glfw bgfx)
+target_link_libraries(soul_tests glfw bgfx freetype)
 
 target_include_directories(soul_tests PUBLIC 
   ${SOUL_INCLUDE_DIRECTORIES}

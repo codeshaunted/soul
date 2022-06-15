@@ -100,11 +100,98 @@ tl::expected<bgfx::ShaderHandle, Error> Shaders::getFragmentShader() {
     return bgfx::createShader(bgfx::makeRef(shader, shader_size));
 }
 
+
+tl::expected<bgfx::ShaderHandle, Error> Shaders::getTextVertexShader() {
+    uint8_t* shader = nullptr;
+    uint32_t shader_size = 0;
+    
+    switch (bgfx::getRendererType()) {
+#ifdef SOUL_IS_WINDOWS
+        case bgfx::RendererType::Enum::Direct3D9:
+            SOUL_SET_VERTEX_SHADER_AND_SIZE(dx9);
+            break;
+        case bgfx::RendererType::Enum::Direct3D11:
+        case bgfx::RendererType::Enum::Direct3D12:
+            SOUL_SET_VERTEX_SHADER_AND_SIZE(dx11);
+            break;
+#endif // SOUL_IS_WINDOWS
+#if defined(SOUL_IS_WINDOWS) || defined(SOUL_IS_LINUX)
+        case bgfx::RendererType::Enum::OpenGL:
+            SOUL_SET_VERTEX_SHADER_AND_SIZE(opengl);
+            break;
+        case bgfx::RendererType::Enum::Vulkan:
+            SOUL_SET_VERTEX_SHADER_AND_SIZE(spirv);
+            break;
+#endif // SOUL_IS_WINDOWS || SOUL_IS_LINUX
+#ifdef SOUL_IS_MACOS
+        case bgfx::RendererType::Enum::Metal:
+            SOUL_SET_VERTEX_SHADER_AND_SIZE(metal);
+            break;
+#endif // SOUL_IS_MACOS
+        case bgfx::RendererType::Enum::Count:
+            return tl::unexpected(Error::UNKNOWN);
+        default:
+            return tl::unexpected(Error::UNKNOWN);
+    }
+    
+    if (!shader) return tl::unexpected(Error::UNKNOWN);
+
+    return bgfx::createShader(bgfx::makeRef(shader, shader_size));
+}
+
+tl::expected<bgfx::ShaderHandle, Error> Shaders::getTextFragmentShader() {
+    uint8_t* shader = nullptr;
+    uint32_t shader_size = 0;
+
+    switch (bgfx::getRendererType()) {
+#ifdef SOUL_IS_WINDOWS
+    case bgfx::RendererType::Enum::Direct3D9:
+        SOUL_SET_FRAGMENT_SHADER_AND_SIZE(dx9);
+        break;
+    case bgfx::RendererType::Enum::Direct3D11:
+    case bgfx::RendererType::Enum::Direct3D12:
+        SOUL_SET_FRAGMENT_SHADER_AND_SIZE(dx11);
+        break;
+#endif // SOUL_IS_WINDOWS
+#if defined(SOUL_IS_WINDOWS) || defined(SOUL_IS_LINUX)
+    case bgfx::RendererType::Enum::OpenGL:
+        SOUL_SET_FRAGMENT_SHADER_AND_SIZE(opengl);
+        break;
+    case bgfx::RendererType::Enum::Vulkan:
+        SOUL_SET_FRAGMENT_SHADER_AND_SIZE(spirv);
+        break;
+#endif // SOUL_IS_WINDOWS || SOUL_IS_LINUX
+#ifdef SOUL_IS_MACOS
+    case bgfx::RendererType::Enum::Metal:
+        SOUL_SET_FRAGMENT_SHADER_AND_SIZE(metal);
+        break;
+#endif // SOUL_IS_MACOS
+    case bgfx::RendererType::Enum::Count:
+        return tl::unexpected(Error::UNKNOWN);
+    default:
+        return tl::unexpected(Error::UNKNOWN);
+    }
+
+    if (!shader) return tl::unexpected(Error::UNKNOWN);
+
+    return bgfx::createShader(bgfx::makeRef(shader, shader_size));
+}
+
 tl::expected<bgfx::ProgramHandle, Error> Shaders::getProgram() {
     auto vertex_shader = Shaders::getVertexShader();
     if (!vertex_shader) return tl::unexpected(vertex_shader.error());
 
     auto fragment_shader = Shaders::getFragmentShader();
+    if (!fragment_shader) return tl::unexpected(fragment_shader.error());
+    
+    return bgfx::createProgram(*vertex_shader, *fragment_shader, true);
+}
+
+tl::expected<bgfx::ProgramHandle, Error> Shaders::getTextProgram() {
+    auto vertex_shader = Shaders::getTextVertexShader();
+    if (!vertex_shader) return tl::unexpected(vertex_shader.error());
+
+    auto fragment_shader = Shaders::getTextFragmentShader();
     if (!fragment_shader) return tl::unexpected(fragment_shader.error());
     
     return bgfx::createProgram(*vertex_shader, *fragment_shader, true);
@@ -119,6 +206,15 @@ uint8_t Shaders::vertex_dx11[] = { ${vertex_dx11.bin} };
 uint32_t Shaders::vertex_dx11_size = sizeof(Shaders::vertex_dx11);
 uint8_t Shaders::fragment_dx11[] = { ${fragment_dx11.bin} };
 uint32_t Shaders::fragment_dx11_size = sizeof(Shaders::fragment_dx11);
+
+uint8_t Shaders::vertex_text_dx9[] = { ${vertex_text_dx9.bin} };
+uint32_t Shaders::vertex_text_dx9_size = sizeof(Shaders::vertex_dx9);
+uint8_t Shaders::fragment_text_dx9[] = { ${fragment_text_dx9.bin} };
+uint32_t Shaders::fragment_text_dx9_size = sizeof(Shaders::fragment_dx9);
+uint8_t Shaders::vertex_text_dx11[] = { ${vertex_text_dx11.bin} };
+uint32_t Shaders::vertex_text_dx11_size = sizeof(Shaders::vertex_dx11);
+uint8_t Shaders::fragment_text_dx11[] = { ${fragment_text_dx11.bin} };
+uint32_t Shaders::fragment_text_dx11_size = sizeof(Shaders::fragment_dx11);
 #endif // SOUL_IS_WINDOWS
 #if defined(SOUL_IS_WINDOWS) || defined(SOUL_IS_LINUX)
 uint8_t Shaders::vertex_opengl[] = { ${vertex_opengl.bin} };
@@ -129,12 +225,26 @@ uint8_t Shaders::vertex_spirv[] = { ${vertex_spirv.bin} };
 uint32_t Shaders::vertex_spirv_size = sizeof(Shaders::vertex_spirv);
 uint8_t Shaders::fragment_spirv[] = { ${fragment_spirv.bin} };
 uint32_t Shaders::fragment_spirv_size = sizeof(Shaders::fragment_spirv);
+
+uint8_t Shaders::vertex_text_opengl[] = { ${vertex_text_opengl.bin} };
+uint32_t Shaders::vertex_text_opengl_size = sizeof(Shaders::vertex_opengl);
+uint8_t Shaders::fragment_text_opengl[] = { ${fragment_text_opengl.bin} };
+uint32_t Shaders::fragment_text_opengl_size = sizeof(Shaders::fragment_opengl);
+uint8_t Shaders::vertex_text_spirv[] = { ${vertex_text_spirv.bin} };
+uint32_t Shaders::vertex_text_spirv_size = sizeof(Shaders::vertex_spirv);
+uint8_t Shaders::fragment_text_spirv[] = { ${fragment_text_spirv.bin} };
+uint32_t Shaders::fragment_text_spirv_size = sizeof(Shaders::fragment_spirv);
 #endif // SOUL_IS_WINDOWS || SOUL_IS_LINUX
 #ifdef SOUL_IS_MACOS
 uint8_t Shaders::vertex_metal[] = { ${vertex_metal.bin} };
 uint32_t Shaders::vertex_metal_size = sizeof(Shaders::vertex_metal)
 uint8_t Shaders::fragment_metal[] = { ${fragment_metal.bin} };
 uint32_t Shaders::fragment_metal_size = sizeof(Shaders::fragment_metal);
+
+uint8_t Shaders::vertex_text_metal[] = { ${vertex_text_metal.bin} };
+uint32_t Shaders::vertex_text_metal_size = sizeof(Shaders::vertex_metal)
+uint8_t Shaders::fragment_text_metal[] = { ${fragment_text_metal.bin} };
+uint32_t Shaders::fragment_text_metal_size = sizeof(Shaders::fragment_metal);
 #endif // SOUL_IS_MACOS
 
 #undef SOUL_SET_VERTEX_SHADER_AND_SIZE

@@ -30,6 +30,9 @@ class Shaders {
 		static tl::expected<bgfx::ShaderHandle, Error> getVertexShader();
 		static tl::expected<bgfx::ShaderHandle, Error> getFragmentShader();
 		static tl::expected<bgfx::ProgramHandle, Error> getProgram();
+		static tl::expected<bgfx::ShaderHandle, Error> getTextVertexShader();
+		static tl::expected<bgfx::ShaderHandle, Error> getTextFragmentShader();
+		static tl::expected<bgfx::ProgramHandle, Error> getTextProgram();
 	private:
 #ifdef SOUL_IS_WINDOWS
 		static uint8_t vertex_dx9[];
@@ -40,6 +43,14 @@ class Shaders {
 		static uint32_t vertex_dx11_size;
 		static uint8_t fragment_dx11[];
 		static uint32_t fragment_dx11_size;
+		static uint8_t vertex_text_dx9[];
+		static uint32_t vertex_text_dx9_size;
+		static uint8_t fragment_text_dx9[];
+		static uint32_t fragment_text_dx9_size;
+		static uint8_t vertex_text_dx11[];
+		static uint32_t vertex_text_dx11_size;
+		static uint8_t fragment_text_dx11[];
+		static uint32_t fragment_text_dx11_size;
 #endif // SOUL_IS_WINDOWS
 #if defined(SOUL_IS_WINDOWS) || defined(SOUL_IS_LINUX)
 		static uint8_t vertex_opengl[];
@@ -50,12 +61,24 @@ class Shaders {
 		static uint32_t vertex_spirv_size;
 		static uint8_t fragment_spirv[];
 		static uint32_t fragment_spirv_size;
+		static uint8_t vertex_text_opengl[];
+		static uint32_t vertex_text_opengl_size;
+		static uint8_t fragment_text_opengl[];
+		static uint32_t fragment_text_opengl_size;
+		static uint8_t vertex_text_spirv[];
+		static uint32_t vertex_text_spirv_size;
+		static uint8_t fragment_text_spirv[];
+		static uint32_t fragment_text_spirv_size;
 #endif // SOUL_IS_WINDOWS || SOUL_IS_LINUX
 #ifdef SOUL_IS_MACOS
 		static uint8_t vertex_metal[];
 		static uint32_t vertex_metal_size;
 		static uint8_t fragment_metal[];
 		static uint32_t fragment_metal_size;
+		static uint8_t vertex_text_metal[];
+		static uint32_t vertex_text_metal_size;
+		static uint8_t fragment_text_metal[];
+		static uint32_t fragment_text_metal_size;
 #endif // SOUL_IS_MACOS
 };
 
