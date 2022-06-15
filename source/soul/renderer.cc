@@ -93,6 +93,10 @@ TextVertex text_verts[] = {
 	{0.f, 0.f, 0.f, 0xffff00ff, 0, 0x7fff},     // tl
 	{100.f, 0.f, 0.f, 0xffffffff, 0x7fff, 0x7fff},// tr
 	{100.f, 200.f, 0.f, 0xffffffff, 0x7fff, 0},     // br
+	// {0.f, 200.f, 0.f, 0xffffffff, 0, 0x0000},     // bl
+	// {0.f, 0.f, 0.f, 0xffff00ff, 0, 19},     // tl
+	// {100.f, 0.f, 0.f, 0xffffffff, 17, 19},// tr
+	// {100.f, 200.f, 0.f, 0xffffffff, 17, 0},     // br
 };
 uint32_t text_indices[] = {
 //bl tr tl bl br tr
@@ -220,8 +224,6 @@ Error generate_font_textures(std::map<char, Character>& out, const char* name, u
 
 	FT_Set_Pixel_Sizes(font_face, 0, line_height_px);
 
-	// FT_TRY(FT_Load_Char(r->font_face, 'X', FT_LOAD_RENDER), return tl::unexpected(Error::FREETYPE_ERR));
-
 	if (!bgfx::isTextureValid(0, false, 1, bgfx::TextureFormat::R8U, 0)) {
 		std::cerr << "texture format is invalid!" << std::endl;
 		return Error::UNKNOWN;
@@ -323,11 +325,12 @@ Error Renderer::update() {
 	// bgfx::submit(0, this->program);
 
 	// draw text
-	Character& char_obj = this->char_map.at('S');
+	Character& char_obj = this->char_map.at('c');
 	bgfx::setVertexBuffer(0, this->text_vertex_buffer);
 	bgfx::setIndexBuffer(this->text_index_buffer);
 	bgfx::setTexture(0, this->text_texture_uniform, char_obj.texture.handle);
 	bgfx::submit(0, this->text_program);
+	// std::cout << "w " << char_obj.size.x << " h " << char_obj.size.y << std::endl;
 
 	bgfx::frame();
 

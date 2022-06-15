@@ -22,11 +22,14 @@ $input v_color0, v_texcoord0
 SAMPLER2D(text, 0);
 
 void main() {
-	// vec4 sampled = vec4(1.0, 1.0, 1.0, );
-	vec4 result;
-	result.x = v_color0.x;
-	result.y = v_color0.y;
-	result.z = v_color0.z;
-	result.w = texture2D(text, v_texcoord0).r;
-	gl_FragColor = vec4(1.0, 0.0, 0.0, 0.0); //v_color0;
+	// vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(text_texture, v_texcoord0).r);
+	// vec4 result;
+	// result.x = v_color0.x;
+	// result.y = v_color0.y;
+	// result.z = v_color0.z;
+	// result.w = texture2D(text, v_texcoord0).r;
+	gl_FragColor = vec4(texture2D(text, v_texcoord0).r, texture2D(text, v_texcoord0).r, texture2D(text, v_texcoord0).r, 1.0);
+	// gl_FragColor = vec4(v_texcoord0.x, v_texcoord0.y, 0.5, 1.0);
+	// gl_FragColor = v_color0;
+	// gl_FragColor = vec4(v_color0.r, v_color0.g, v_color0.b, 1.0) * sampled;
 }
