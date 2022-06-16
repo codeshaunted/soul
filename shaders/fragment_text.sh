@@ -24,15 +24,5 @@ SAMPLER2D(s_CharTexture, 0);
 uniform vec4 u_color;
 
 void main() {
-	// vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(text_texture, v_texcoord0).r);
-	// vec4 result;
-	// result.x = v_color0.x;
-	// result.y = v_color0.y;
-	// result.z = v_color0.z;
-	// result.w = texture2D(text, v_texcoord0).r;
-	// gl_FragColor = vec4(texture2D(s_CharTexture, v_texcoord0).r, texture2D(s_CharTexture, v_texcoord0).r, texture2D(s_CharTexture, v_texcoord0).r, v_texcoord0.x);
-	gl_FragColor = vec4(1.0, texture2D(s_CharTexture, v_texcoord0).x, u_color.x, v_texcoord0.x);
-	// gl_FragColor = vec4(v_texcoord0.x, v_texcoord0.y, 0.5, 1.0);
-	// gl_FragColor = v_color0;
-	// gl_FragColor = vec4(v_color0.r, v_color0.g, v_color0.b, 1.0) * sampled;
+	gl_FragColor = vec4(v_color0.r, v_color0.g, v_color0.b, 1.0) * texture2D(s_CharTexture, v_texcoord0).r;
 }

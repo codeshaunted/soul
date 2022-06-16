@@ -37,7 +37,7 @@
 
 #include "shaders.hh"
 
-#define LINE_HEIGHT 48
+#define LINE_HEIGHT 300
 
 namespace soul {
 
@@ -90,10 +90,10 @@ uint16_t triangle_indices[] = {
 };
 
 TextVertex text_verts[] = {
-	{0.f, 200.f, 0.f, 0xffffffff, 0, 0},     // bl
-	{0.f, 0.f, 0.f, 0xffff00ff, 0, 0x7fff},     // tl
-	{100.f, 0.f, 0.f, 0xffffffff, 0x7fff, 0x7fff},// tr
-	{100.f, 200.f, 0.f, 0xffffffff, 0x7fff, 0},     // br
+	{0.f, 200.f, 0.f, 0xffffffff, 0, 0x7fff},     // bl
+	{0.f, 0.f, 0.f, 0xffffffff, 0, 0},     // tl
+	{100.f, 0.f, 0.f, 0xffffffff, 0x7fff, 0},// tr
+	{100.f, 200.f, 0.f, 0xffffffff, 0x7fff, 0x7fff},     // br
 	// {0.f, 200.f, 0.f, 0xffffffff, 0, 0x0000},     // bl
 	// {0.f, 0.f, 0.f, 0xffff00ff, 0, 19},     // tl
 	// {100.f, 0.f, 0.f, 0xffffffff, 17, 19},// tr
@@ -344,7 +344,7 @@ Error Renderer::update() {
 	// bgfx::submit(0, this->program);
 
 	// draw text
-	Character& char_obj = this->char_map.at('c');
+	Character& char_obj = this->char_map.at('a');
 	bgfx::setVertexBuffer(0, this->text_vertex_buffer);
 	bgfx::setIndexBuffer(this->text_index_buffer);
 	bgfx::setTexture(0, this->text_texture_uniform, char_obj.texture.handle);
