@@ -25,6 +25,7 @@
 #include "tl/expected.hpp"
 // #include "bx/math.h"
 #include <cstdint>
+#include <cstring>
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -37,7 +38,7 @@
 
 #include "shaders.hh"
 
-#define LINE_HEIGHT 300
+#define LINE_HEIGHT 48
 
 namespace soul {
 
@@ -89,33 +90,16 @@ uint16_t triangle_indices[] = {
 	0, 2, 1, 2, 3, 1, 0, 2, 1, 2, 3, 1, 0, 2, 1, 2, 3, 1
 };
 
-TextVertex text_verts[] = {
-	{0.f, 200.f, 0.f, 0xffffffff, 0, 0x7fff},     // bl
-	{0.f, 0.f, 0.f, 0xffffffff, 0, 0},     // tl
-	{100.f, 0.f, 0.f, 0xffffffff, 0x7fff, 0},// tr
-	{100.f, 200.f, 0.f, 0xffffffff, 0x7fff, 0x7fff},     // br
-	// {0.f, 200.f, 0.f, 0xffffffff, 0, 0x0000},     // bl
-	// {0.f, 0.f, 0.f, 0xffff00ff, 0, 19},     // tl
-	// {100.f, 0.f, 0.f, 0xffffffff, 17, 19},// tr
-	// {100.f, 200.f, 0.f, 0xffffffff, 17, 0},     // br
-};
-uint32_t text_indices[] = {
-//bl tr tl bl br tr
-	// 0, 2, 1, 0, 3, 2
-//tl tr bl tr br bl
-	1, 2, 0, 2, 3, 0
-};
-
 Renderer::~Renderer() {
 	bgfx::destroy(this->vertex_buffer);
 	bgfx::destroy(this->index_buffer);
 	bgfx::destroy(this->program);
-	bgfx::destroy(this->text_vertex_buffer);
-	bgfx::destroy(this->text_index_buffer);
 	bgfx::destroy(this->text_program);
 	bgfx::destroy(this->text_texture_uniform);
 	for (auto & [k, v]: this->char_map) {
-		bgfx::destroy(v.texture.handle);
+		if (auto h = v.getMaybeHandle()) {
+			bgfx::destroy(*h);
+		}
 	}
 	bgfx::shutdown();
 }
@@ -170,29 +154,14 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 				sizeof(triangle_indices)
 			)
 		);
-
-	bgfx::DynamicVertexBufferHandle new_text_vertex_buffer = 
-		bgfx::createDynamicVertexBuffer(
-			bgfx::makeRef(text_verts,
-			sizeof(text_verts)),
-			TextVertex::layout
-		);
-	bgfx::DynamicIndexBufferHandle new_text_index_buffer = 
-		bgfx::createDynamicIndexBuffer(
-			bgfx::makeRef(
-				text_indices, 
-				sizeof(text_indices)
-			)
-		);
 	
 	auto uniform_handle = bgfx::createUniform("s_CharTexture", bgfx::UniformType::Sampler);
-	// ?????? no idea if this is right
+
 	uint64_t state = 0
 					| BGFX_STATE_WRITE_RGB
 					| BGFX_STATE_WRITE_A
-					// | BGFX_STATE_WRITE_Z
 					| BGFX_STATE_CULL_CW
-					// | BGFX_STATE_MSAA
+					| BGFX_STATE_MSAA
 					| BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
 	
 	auto r = new Renderer(
@@ -201,11 +170,11 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 		*text_program,
 		new_vertex_buffer,
 		new_index_buffer,
-		new_text_vertex_buffer,
-		new_text_index_buffer,
 		uniform_handle,
 		state
 	);
+
+	// bgfx::setDebug(BGFX_DEBUG_WIREFRAME);
 
 	auto g = generate_font_textures(r->char_map, "CascadiaCode.ttf", LINE_HEIGHT);
 	if (g != Error::SUCCESS) return tl::unexpected(g);
@@ -261,8 +230,8 @@ Error generate_font_textures(std::map<char, Character>& out, const char* name, u
 				result.texture.mem
 			);
 
-			if (!bgfx::isValid(result.texture.handle)) {
-				std::cerr << "texture created was invalid!" << std::endl;
+			if (result.texture.handle.idx == bgfx::kInvalidHandle) {
+				std::cerr << "WARN: got invalid handle when generating texture for char 0x" << std::hex << c << std::endl;
 				return Error::UNKNOWN;
 			}
 
@@ -276,20 +245,6 @@ Error generate_font_textures(std::map<char, Character>& out, const char* name, u
 				1,
 				bgfx::TextureFormat::R8
 			);
-
-			// FIXME remove this
-			if (c == 'c') {
-				for (int y = font_face->glyph->bitmap.rows-1; y >= 0; y--) {
-					for (unsigned int x = 0; x < font_face->glyph->bitmap.width; x++) {
-						uint8_t c = font_face->glyph->bitmap.buffer[y * font_face->glyph->bitmap.width + x];
-						constexpr const char* palette[] = {" ", ".", "-", "~", "+", "="};
-						auto i = c/51;
-						// std::cout << std::hex << i;
-						std::cout << palette[i];
-					}
-					std::cout << std::endl;
-				}
-			}
 		}
 
 		result.size = glm::ivec2(font_face->glyph->bitmap.width, font_face->glyph->bitmap.rows);
@@ -333,27 +288,100 @@ Error Renderer::update() {
 		glm::value_ptr(projection_matrix)
 	);
 	bgfx::setViewRect(0, 0, 0, window_size->width, window_size->height);
-	
-	bgfx::setState(this->bgfx_state_flags);
 
 	bgfx::setViewMode(0, bgfx::ViewMode::Sequential);
 
 	// main draw
-	// bgfx::setVertexBuffer(0, this->vertex_buffer);
-	// bgfx::setIndexBuffer(this->index_buffer);
-	// bgfx::submit(0, this->program);
+	bgfx::setState(this->bgfx_state_flags);
+	bgfx::setVertexBuffer(0, this->vertex_buffer);
+	bgfx::setIndexBuffer(this->index_buffer);
+	bgfx::submit(0, this->program);
 
 	// draw text
-	Character& char_obj = this->char_map.at('a');
-	bgfx::setVertexBuffer(0, this->text_vertex_buffer);
-	bgfx::setIndexBuffer(this->text_index_buffer);
-	bgfx::setTexture(0, this->text_texture_uniform, char_obj.texture.handle);
-	bgfx::submit(0, this->text_program);
-	// std::cout << "w " << char_obj.size.x << " h " << char_obj.size.y << std::endl;
+	this->drawText("Hello, world~", 20., 10.);
+	this->drawText("This text is red!", 20., 60., 0xff1111ff);
+	this->drawText("this text is big!", 20., 100., 0xffdd2222, 1.5f);
 
 	bgfx::frame();
 
 	return Error::SUCCESS;
+}
+
+// TODO: handle unicode
+void Renderer::drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr, float scale) {
+
+	for (char c : text) {
+		if (!this->char_map.contains(c)) {
+			// for now, skip unknown characters.
+			continue;
+		}
+		Character& char_data = this->char_map.at(c);
+
+		if (char_data.size.x > 0 && char_data.size.y > 0) {
+			// draw this character.
+
+			float x = xpos + char_data.bearing.x * scale;
+			// this is close enough but there is still something wrong with it.
+			// as scale increases, the top of the text gets farther from the given
+			// y position. If it worked properly, the top left corner of the text
+			// would stay aligned with the given y position. This is also an issue
+			// at scale = 1.0, but it is less noticable.
+			float y = ypos + (LINE_HEIGHT - char_data.bearing.y) * scale;
+
+			float w = char_data.size.x * scale;
+			float h = char_data.size.y * scale;
+
+			bgfx::TransientVertexBuffer tvb;
+			bgfx::TransientIndexBuffer tib;
+			if (!bgfx::allocTransientBuffers(&tvb, TextVertex::layout, 4000, &tib, 6)) {
+				std::cerr << "failed to allocate trasient buffers" << std::endl;
+				return;
+			}
+
+			TextVertex* tvbd = (TextVertex*) tvb.data;
+
+			tvbd[0].x = x;
+			tvbd[0].y = y + h;
+			tvbd[0].color = color_abgr;
+			tvbd[0].u = 0;
+			tvbd[0].v = 0x7fff;
+			tvbd[1].x = x;
+			tvbd[1].y = y;
+			tvbd[1].color = color_abgr;
+			tvbd[1].u = 0;
+			tvbd[1].v = 0;
+			tvbd[2].x = x + w;
+			tvbd[2].y = y;
+			tvbd[2].color = color_abgr;
+			tvbd[2].u = 0x7fff;
+			tvbd[2].v = 0;
+			tvbd[3].x = x + w;
+			tvbd[3].y = y + h;
+			tvbd[3].color = color_abgr;
+			tvbd[3].u = 0x7fff;
+			tvbd[3].v = 0x7fff;
+
+			uint16_t* tibd = (uint16_t*) tib.data;
+
+			tibd[0] = 0;
+			tibd[1] = 2;
+			tibd[2] = 1;
+			tibd[3] = 0;
+			tibd[4] = 3;
+			tibd[5] = 2;
+
+			tib.startIndex = 0;
+
+			bgfx::setVertexBuffer(0, &tvb);
+			bgfx::setIndexBuffer(&tib);
+			bgfx::setTexture(0, this->text_texture_uniform, char_data.texture.handle);
+	
+			bgfx::setState(this->bgfx_state_flags);
+			bgfx::submit(0, this->text_program);
+		}
+
+		xpos += char_data.getAdvancePx() * scale;
+	}
 }
 
 Renderer::Renderer(
@@ -362,8 +390,6 @@ Renderer::Renderer(
 	bgfx::ProgramHandle text_program,
 	bgfx::DynamicVertexBufferHandle new_vertex_buffer,
 	bgfx::DynamicIndexBufferHandle new_index_buffer,
-	bgfx::DynamicVertexBufferHandle new_text_vertex_buffer,
-	bgfx::DynamicIndexBufferHandle new_text_index_buffer,
 	bgfx::UniformHandle new_uniform_handle,
 	uint64_t state
 ) {
@@ -372,8 +398,6 @@ Renderer::Renderer(
 	this->text_program = text_program;
 	this->vertex_buffer = new_vertex_buffer;
 	this->index_buffer = new_index_buffer;
-	this->text_vertex_buffer = new_text_vertex_buffer;
-	this->text_index_buffer = new_text_index_buffer;
 	this->text_texture_uniform = new_uniform_handle;
 	this->bgfx_state_flags = state;
 }

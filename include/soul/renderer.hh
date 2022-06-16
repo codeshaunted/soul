@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include <string_view>
 
 #include "window.hh" 
 #include "error.hh"
@@ -43,6 +44,19 @@ struct Character {
 	glm::ivec2 size; // size of glyph
 	glm::ivec2 bearing; // Offset from baseline to top left of glyph
 	unsigned int advance; // offset to advance to next glyph
+
+	int getAdvancePx() {
+		// advance value is in 1/64th pixels
+		return this->advance >> 6;
+	}
+
+	inline std::optional<bgfx::TextureHandle>getMaybeHandle() {
+		if (this->size.x > 0 && this->size.y > 0) {
+			return this->texture.handle;
+		} else {
+			return std::nullopt;
+		}
+	}
 };
 
 struct Vertex {
@@ -92,18 +106,15 @@ class Renderer {
 			bgfx::ProgramHandle text_program,
 			bgfx::DynamicVertexBufferHandle new_vertex_buffer,
 			bgfx::DynamicIndexBufferHandle new_index_buffer,
-			bgfx::DynamicVertexBufferHandle new_text_vertex_buffer,
-			bgfx::DynamicIndexBufferHandle new_text_index_buffer,
 			bgfx::UniformHandle new_uniform_handle,
 			uint64_t state
 		);
+		void drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr = 0xffffffff, float scale = 1.0f);
 		Window* window;
 		bgfx::ProgramHandle program;
 		bgfx::ProgramHandle text_program;
 		bgfx::DynamicVertexBufferHandle vertex_buffer;
 		bgfx::DynamicIndexBufferHandle index_buffer;
-		bgfx::DynamicVertexBufferHandle text_vertex_buffer;
-		bgfx::DynamicIndexBufferHandle text_index_buffer;
 		std::map<char, Character> char_map;
 		uint64_t bgfx_state_flags;
 		bgfx::UniformHandle text_texture_uniform;
