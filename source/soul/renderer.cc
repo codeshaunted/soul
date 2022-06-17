@@ -31,6 +31,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <math.h>
 
 #define FT_TRY(expr, fail) if((expr)) {fail;}
 
@@ -302,13 +303,27 @@ Error Renderer::update() {
 	this->drawText("This text is red!", 20., 60., 0xff1111ff);
 	this->drawText("this text is big!", 20., 100., 0xffdd2222, 1.5f);
 
+	this->drawTextF("this text is colorful!", 20., 180., [](float x, float y) -> uint32_t {
+		float scale = 50.f;
+		uint8_t r = (uint8_t)255*sin(x/scale);
+		uint8_t g = (uint8_t)255*sin(x/scale+scale);
+		uint8_t b = (uint8_t)255*sin(x/scale+scale*2);
+		return 0xff000000 | b << 16 | g << 8 | r;
+	}, 1.0f);
+
 	bgfx::frame();
 
 	return Error::SUCCESS;
 }
 
-// TODO: handle unicode
+
 void Renderer::drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr, float scale) {
+	this->drawTextF(text, xpos, ypos, [color_abgr](float x, float y) -> uint32_t {return color_abgr;}, scale);
+}
+
+// TODO: handle unicode
+template<typename F>
+void Renderer::drawTextF(std::string_view text, float xpos, float ypos, F color_fn, float scale) {
 
 	for (char c : text) {
 		if (!this->char_map.contains(c)) {
@@ -342,22 +357,22 @@ void Renderer::drawText(std::string_view text, float xpos, float ypos, uint32_t 
 
 			tvbd[0].x = x;
 			tvbd[0].y = y + h;
-			tvbd[0].color = color_abgr;
+			tvbd[0].color = color_fn(x,y+h);
 			tvbd[0].u = 0;
 			tvbd[0].v = 0x7fff;
 			tvbd[1].x = x;
 			tvbd[1].y = y;
-			tvbd[1].color = color_abgr;
+			tvbd[1].color = color_fn(x,y);
 			tvbd[1].u = 0;
 			tvbd[1].v = 0;
 			tvbd[2].x = x + w;
 			tvbd[2].y = y;
-			tvbd[2].color = color_abgr;
+			tvbd[2].color = color_fn(x+w,y);
 			tvbd[2].u = 0x7fff;
 			tvbd[2].v = 0;
 			tvbd[3].x = x + w;
 			tvbd[3].y = y + h;
-			tvbd[3].color = color_abgr;
+			tvbd[3].color = color_fn(x+w,y+h);
 			tvbd[3].u = 0x7fff;
 			tvbd[3].v = 0x7fff;
 

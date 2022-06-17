@@ -109,6 +109,8 @@ class Renderer {
 			bgfx::UniformHandle new_uniform_handle,
 			uint64_t state
 		);
+		template<typename F>
+		void drawTextF(std::string_view text, float xpos, float ypos, F color_fn, float scale = 1.0f);
 		void drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr = 0xffffffff, float scale = 1.0f);
 		Window* window;
 		bgfx::ProgramHandle program;
