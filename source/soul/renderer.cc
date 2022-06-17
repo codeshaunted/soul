@@ -23,7 +23,7 @@
 #include "freetype/freetype.h"
 #include "glm/fwd.hpp"
 #include "tl/expected.hpp"
-// #include "bx/math.h"
+#include "cascadia_code_data.hh"
 #include <cstdint>
 #include <cstring>
 #include <glm/glm.hpp>
@@ -188,7 +188,7 @@ Error generate_font_textures(std::map<char, Character>& out, const char* name, u
 	FT_TRY(FT_Init_FreeType(&ft), return Error::FREETYPE_ERR);
 
 	FT_Face font_face;
-	FT_TRY(FT_New_Face(ft, "CascadiaCode.ttf", 0, &font_face), 
+	FT_TRY(FT_New_Memory_Face(ft, CascadiaCode_ttf, CascadiaCode_ttf_len, 0, &font_face), 
 		std::cerr << "failed to get font" << std::endl; return Error::FREETYPE_ERR
 	);
 
