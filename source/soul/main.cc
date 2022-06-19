@@ -58,12 +58,10 @@ int main(int argc, char** argv) {
 	auto root = GNonLeaf::create(false, 0.3, leaf3, node1).value();
 	gui.tree = root;
 
-	auto tris = gui.toGeometry(window.value()->getSize()->width, window.value()->getSize()->height);
-
-	renderer.value()->setVertexAndIndexBuffers(tris.first, tris.second);
+	auto cmds = gui.toCmds(window.value()->getSize()->width, window.value()->getSize()->height);
 
 	while (!window.value()->shouldClose()) {
-		renderer.value()->update();
+		renderer.value()->update(std::move(cmds));
 		auto event = window.value()->awaitEvent();
 	}
 

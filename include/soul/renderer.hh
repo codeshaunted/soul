@@ -24,6 +24,9 @@
 
 #include <cstdint>
 #include <ft2build.h>
+#include <memory>
+#include <optional>
+#include <string>
 #include FT_FREETYPE_H
 #include <string_view>
 
@@ -93,12 +96,65 @@ static_assert(offsetof(TextVertex, color) == 12, "offset of vertex z must be 12"
 static_assert(offsetof(TextVertex, u) == 16, "offset of vertex u must be 16");
 static_assert(offsetof(TextVertex, v) == 18, "offset of vertex v must be 18");
 
+namespace DrawCmd {
+
+struct Any {
+	virtual ~Any() {}
+	virtual void debugLog();
+
+	Any() {}
+};
+
+struct Rect: Any {
+	float x, y; // top left
+	float width, height;
+	uint32_t color;
+
+	Rect(float x, float y, float width, float height, uint32_t color) {
+		this->x = x;
+		this->y = y;
+		this->width = width;
+		this->height = height;
+		this->color = color;
+	}
+	virtual void debugLog() override;
+
+	virtual ~Rect() override {}
+};
+
+struct TextSegment {
+	std::string text;
+	uint32_t color_abgr;
+};
+
+struct Text: Any {
+	float x, y; // top left
+	float scale; // this will be ignored after the first node.
+
+	TextSegment first;
+	std::unique_ptr<TextSegment> next;
+
+	Text create(std::string text, float x, float y);
+	Text create(std::string text, float x, float y, uint32_t color);
+	Text create(std::string text, float x, float y, uint32_t color, float scale);
+
+	void append(std::string text);
+	void append(std::string text, uint32_t color_abgr);
+
+	virtual void debugLog() override;
+
+	virtual ~Text() override {}
+	Text() {}
+};
+
+};
+
 class Renderer {
 	public:
 		~Renderer();
 		static tl::expected<Renderer*, Error> create(Window* window);
-		void setVertexAndIndexBuffers(std::vector<Vertex>& verts, std::vector<uint16_t> indices);
-		Error update();
+		// void setVertexAndIndexBuffers(std::vector<Vertex>& verts, std::vector<uint16_t> indices);
+		Error update(std::vector<std::unique_ptr<DrawCmd::Any>> draw_commands);
 	private:
 		Renderer(
 			Window* new_window,

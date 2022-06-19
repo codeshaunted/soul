@@ -19,23 +19,28 @@
 #define SOUL_GUI_HH
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "renderer.hh"
 
 namespace soul {
 
+struct Rect {
+	float x, y; // top left
+	float width, height;
+	uint32_t color;
+};
+
 struct GNode {
-  virtual bool shouldBeDrawn() {return false;};
+  virtual void toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>>& out, Rect bounding_box) {}
   virtual ~GNode() {}
 };
 
 struct GLeaf : GNode {
 	uint32_t color;
 
-  virtual bool shouldBeDrawn() override {
-    return true;
-  }
+  virtual void toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>>& out, Rect bounding_box) override;
 
   GLeaf(uint32_t box_color) {
     this->color = box_color;
@@ -53,9 +58,7 @@ struct GNonLeaf : GNode {
   GNode* first;
   GNode* second;
 
-  virtual bool shouldBeDrawn() override {
-    return false;
-  }
+  virtual void toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>>& out, Rect bounding_box) override;
 
   static std::optional<GNonLeaf*> create(bool split_horizontal, float split, GNode* first, GNode* second);
 
@@ -71,8 +74,8 @@ class GUI {
 public:
   static GUI create();
 
-  std::pair<std::vector<Vertex>, std::vector<uint16_t>>
-  toGeometry(unsigned int window_width, unsigned int window_height);
+  std::vector<std::unique_ptr<DrawCmd::Any>>
+  toCmds(unsigned int window_width, unsigned int window_height);
 // private:
   GNode* tree;
 

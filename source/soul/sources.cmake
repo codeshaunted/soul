@@ -29,7 +29,8 @@ set(SOUL_SOURCE_FILES
     "${SOUL_SOURCE_DIR}/renderer.cc"
     "${SOUL_SOURCE_DIR}/text_engine.cc"
     "${SOUL_SOURCE_DIR}/events.cc"
-    "${SOUL_SOURCE_DIR}/gui.cc")
+    "${SOUL_SOURCE_DIR}/gui.cc"
+    "${SOUL_SOURCE_DIR}/debug.cc")
 
 set(SOUL_INCLUDE_DIRECTORIES
     "${CMAKE_SOURCE_DIR}/include/soul"
