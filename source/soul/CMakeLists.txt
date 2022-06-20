@@ -26,10 +26,19 @@ set(SOUL_COMPILE_DEFINITIONS)
 
 configure_file("${CMAKE_SOURCE_DIR}/include/soul/config.hh.in" "config.hh")
 
+# shader packing
+file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/shaders.cc")
 add_custom_command(
     OUTPUT shaders.cc
-    COMMAND shader_pack ${CMAKE_SOURCE_DIR}/source/soul/shaders.cc.in ${CMAKE_CURRENT_BINARY_DIR}/shaders.cc ${CMAKE_BINARY_DIR}/shaders
+    COMMAND file_pack ${CMAKE_SOURCE_DIR}/source/soul/shaders.cc.in ${CMAKE_CURRENT_BINARY_DIR}/shaders.cc ${CMAKE_BINARY_DIR}/shaders
     DEPENDS shaders.cc.in)
+
+# font packing
+file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/fonts.cc")
+add_custom_command(
+    OUTPUT fonts.cc
+    COMMAND file_pack ${CMAKE_SOURCE_DIR}/source/soul/fonts.cc.in ${CMAKE_CURRENT_BINARY_DIR}/fonts.cc ${CMAKE_BINARY_DIR}/_deps/cascadia-code-src/ttf
+    DEPENDS fonts.cc.in)
 
 add_executable(soul ${SOUL_MAIN} ${SOUL_SOURCE_FILES})
 

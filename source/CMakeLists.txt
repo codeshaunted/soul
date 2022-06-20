@@ -15,5 +15,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory("shader_pack")
+add_subdirectory("file_pack")
 add_subdirectory("soul")

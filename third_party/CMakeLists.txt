@@ -28,4 +28,13 @@ set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BGFX_INSTALL OFF CACHE BOOL "" FORCE)
 add_subdirectory("bgfx.cmake")
 
+# freetype
 add_subdirectory("freetype")
+
+# cascadia-code
+include(FetchContent)
+FetchContent_Declare(
+    cascadia-code
+    URL https://github.com/microsoft/cascadia-code/releases/download/v2111.01/CascadiaCode-2111.01.zip
+)
+FetchContent_MakeAvailable(cascadia-code)

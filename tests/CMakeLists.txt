@@ -27,6 +27,7 @@ set(SOUL_TEST_SOURCES
 
 # HACK: this file should already be marked as generated but cmake is dumb and stupid.
 set_source_files_properties("${CMAKE_BINARY_DIR}/source/soul/shaders.cc" PROPERTIES GENERATED TRUE)
+set_source_files_properties("${CMAKE_BINARY_DIR}/source/soul/fonts.cc" PROPERTIES GENERATED TRUE)
 
 add_executable(soul_tests ${SOUL_TEST_SOURCES} ${SOUL_SOURCE_FILES})
 # need to link the same libs as the main executable

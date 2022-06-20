@@ -26,6 +26,7 @@ set(SOUL_MAIN
 set(SOUL_SOURCE_FILES
     "${SOUL_SOURCE_DIR}/window.cc"
     "${CMAKE_BINARY_DIR}/source/soul/shaders.cc"
+    "${CMAKE_BINARY_DIR}/source/soul/fonts.cc"
     "${SOUL_SOURCE_DIR}/renderer.cc"
     "${SOUL_SOURCE_DIR}/text_engine.cc"
     "${SOUL_SOURCE_DIR}/events.cc"

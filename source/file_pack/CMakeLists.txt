@@ -1,6 +1,6 @@
 # codeshaunted - soul
-# source/shader_pack/CMakeLists.txt
-# shader_pack source file directory CMake file
+# source/file_pack/CMakeLists.txt
+# file_pack source file directory CMake file
 # Copyright 2022 the soul team
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,4 +15,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_executable(shader_pack "${CMAKE_CURRENT_SOURCE_DIR}/main.cc")
+add_executable(file_pack "${CMAKE_CURRENT_SOURCE_DIR}/main.cc")

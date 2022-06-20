@@ -178,7 +178,7 @@ class Renderer {
 		bgfx::UniformHandle text_texture_uniform;
 };
 
-Error generate_font_textures(std::map<char, Character>& out, const char* name, uint32_t line_height_px);
+Error generateFontTextures(std::map<char, Character>& out, uint32_t line_height_px);
 
 } // namespace soul
 

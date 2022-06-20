@@ -38,6 +38,7 @@
 #include <iostream>
 
 #include "shaders.hh"
+#include "fonts.hh"
 
 #define LINE_HEIGHT 48
 
@@ -177,18 +178,19 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 
 	// bgfx::setDebug(BGFX_DEBUG_WIREFRAME);
 
-	auto g = generate_font_textures(r->char_map, "CascadiaCode.ttf", LINE_HEIGHT);
+	auto g = generateFontTextures(r->char_map, LINE_HEIGHT);
 	if (g != Error::SUCCESS) return tl::unexpected(g);
 
 	return r;
 }
 
-Error generate_font_textures(std::map<char, Character>& out, const char* name, uint32_t line_height_px) {
+Error generateFontTextures(std::map<char, Character>& out, uint32_t line_height_px) {
 	FT_Library ft;
 	FT_TRY(FT_Init_FreeType(&ft), return Error::FREETYPE_ERR);
 
+	Font* font = Fonts::getDefaultFont();
 	FT_Face font_face;
-	FT_TRY(FT_New_Memory_Face(ft, CascadiaCode_ttf, CascadiaCode_ttf_len, 0, &font_face), 
+	FT_TRY(FT_New_Memory_Face(ft, font->data, font->data_size, 0, &font_face), 
 		std::cerr << "failed to get font" << std::endl; return Error::FREETYPE_ERR
 	);
 
