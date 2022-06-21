@@ -25,6 +25,11 @@ namespace soul {
 struct Font {
 	uint8_t* data;
 	uint32_t data_size;
+
+	Font(uint8_t* data, uint32_t data_size) {
+		this->data = data;
+		this->data_size = data_size;
+	}
 };
 
 class Fonts {

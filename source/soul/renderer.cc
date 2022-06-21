@@ -23,7 +23,6 @@
 #include "freetype/freetype.h"
 #include "glm/fwd.hpp"
 #include "tl/expected.hpp"
-#include "cascadia_code_data.hh"
 #include <cstdint>
 #include <cstring>
 #include <glm/glm.hpp>
@@ -263,16 +262,6 @@ Error generateFontTextures(std::map<char, Character>& out, uint32_t line_height_
 
 	return Error::SUCCESS;
 }
-
-
-// void Renderer::setVertexAndIndexBuffers(std::vector<Vertex> &verts, std::vector<uint16_t> indices) {
-// 	auto vs = verts.size() * sizeof(Vertex);
-// 	auto is = indices.size() * sizeof(uint16_t);
-// 	auto vmem = bgfx::copy(verts.data(), vs);
-// 	auto imem = bgfx::copy(indices.data(), is);
-// 	bgfx::update(this->vertex_buffer, 0, vmem);
-// 	bgfx::update(this->index_buffer, 0, imem);
-// }
 
 Error Renderer::update(std::vector<std::unique_ptr<DrawCmd::Any>> draw_commands) {
 	auto view_matrix =	glm::mat4(1.0f);
