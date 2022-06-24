@@ -237,12 +237,12 @@ uint32_t Shaders::fragment_text_spirv_size = sizeof(Shaders::fragment_text_spirv
 #endif // SOUL_IS_WINDOWS || SOUL_IS_LINUX
 #ifdef SOUL_IS_MACOS
 uint8_t Shaders::vertex_metal[] = { ${vertex_metal.bin} };
-uint32_t Shaders::vertex_metal_size = sizeof(Shaders::vertex_metal)
+uint32_t Shaders::vertex_metal_size = sizeof(Shaders::vertex_metal);
 uint8_t Shaders::fragment_metal[] = { ${fragment_metal.bin} };
 uint32_t Shaders::fragment_metal_size = sizeof(Shaders::fragment_metal);
 
 uint8_t Shaders::vertex_text_metal[] = { ${vertex_text_metal.bin} };
-uint32_t Shaders::vertex_text_metal_size = sizeof(Shaders::vertex_metal)
+uint32_t Shaders::vertex_text_metal_size = sizeof(Shaders::vertex_metal);
 uint8_t Shaders::fragment_text_metal[] = { ${fragment_text_metal.bin} };
 uint32_t Shaders::fragment_text_metal_size = sizeof(Shaders::fragment_metal);
 #endif // SOUL_IS_MACOS

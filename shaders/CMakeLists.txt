@@ -82,7 +82,7 @@ if(SOUL_IS_MACOS)
         "${CMAKE_SOURCE_DIR}/build/vertex_metal.bin"
         "${CMAKE_SOURCE_DIR}/build/fragment_metal.bin"
         "${CMAKE_SOURCE_DIR}/build/vertex_text_metal.bin"
-        "${CMAKE_SOURCE_DIR}/build/fragment_metal.bin")
+        "${CMAKE_SOURCE_DIR}/build/fragment_text_metal.bin")
 
     list(APPEND SOUL_SHADER_BINARIES ${SOUL_METAL_SHADER_BINARIES})
 

@@ -27,6 +27,8 @@
 // TODO: handle wayland
 // #define GLFW_EXPOSE_NATIVE_WAYLAND
 #define GLFW_EXPOSE_NATIVE_X11
+#elif defined(SOUL_IS_MACOS)
+#define GLFW_EXPOSE_NATIVE_COCOA
 #endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
 #include "GLFW/glfw3native.h"
 
@@ -95,6 +97,8 @@ tl::expected<WindowHandle, Error> Window::getHandle() {
 #elif defined(SOUL_IS_LINUX)
 	// handle = glfwGetWaylandWindow(this->window);
 	handle = (void*)glfwGetX11Window(this->window);
+#elif defined(SOUL_IS_MACOS)
+	handle = (void*)glfwGetCocoaWindow(this->window);
 #endif // SOUL_IS_WINDOWS, SOUL_IS_LINUX
 
 	if (handle == NULL) return tl::unexpected(Error::UNKNOWN);
