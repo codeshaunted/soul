@@ -114,6 +114,9 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 
 	bgfx::setPlatformData(platform_data.value());
 
+	// render in this thread
+	bgfx::renderFrame();
+
 	bgfx::Init bgfx_init;
 	bgfx_init.type = bgfx::RendererType::Count; // TODO: config option?
 	bgfx_init.resolution.width = window_size.value().width;
