@@ -16,6 +16,7 @@
 // limitations under the License.
 
 #include "shaders.hh"
+#include "tl/expected.hpp"
 
 namespace soul {
 
@@ -59,7 +60,12 @@ tl::expected<bgfx::ShaderHandle, Error> Shaders::getVertexShader() {
     
     if (!shader) return tl::unexpected(Error::UNKNOWN);
 
-    return bgfx::createShader(bgfx::makeRef(shader, shader_size));
+    auto handle = bgfx::createShader(bgfx::makeRef(shader, shader_size));
+    if (bgfx::isValid(handle)) {
+        return handle;
+    } else {
+        return tl::unexpected(Error::SHADER_ERR);
+    }
 }
 
 tl::expected<bgfx::ShaderHandle, Error> Shaders::getFragmentShader() {
@@ -97,7 +103,12 @@ tl::expected<bgfx::ShaderHandle, Error> Shaders::getFragmentShader() {
 
     if (!shader) return tl::unexpected(Error::UNKNOWN);
 
-    return bgfx::createShader(bgfx::makeRef(shader, shader_size));
+    auto handle =  bgfx::createShader(bgfx::makeRef(shader, shader_size));
+    if (bgfx::isValid(handle)) {
+        return handle;
+    } else {
+        return tl::unexpected(Error::SHADER_ERR);
+    }
 }
 
 
@@ -136,7 +147,12 @@ tl::expected<bgfx::ShaderHandle, Error> Shaders::getTextVertexShader() {
     
     if (!shader) return tl::unexpected(Error::UNKNOWN);
 
-    return bgfx::createShader(bgfx::makeRef(shader, shader_size));
+    auto handle =  bgfx::createShader(bgfx::makeRef(shader, shader_size));
+    if (bgfx::isValid(handle)) {
+        return handle;
+    } else {
+        return tl::unexpected(Error::SHADER_ERR);
+    }
 }
 
 tl::expected<bgfx::ShaderHandle, Error> Shaders::getTextFragmentShader() {
@@ -163,7 +179,7 @@ tl::expected<bgfx::ShaderHandle, Error> Shaders::getTextFragmentShader() {
 #endif // SOUL_IS_WINDOWS || SOUL_IS_LINUX
 #ifdef SOUL_IS_MACOS
     case bgfx::RendererType::Enum::Metal:
-        SOUL_SET_FRAGMENT_SHADER_AND_SIZE(metal);
+        SOUL_SET_FRAGMENT_SHADER_AND_SIZE(text_metal);
         break;
 #endif // SOUL_IS_MACOS
     case bgfx::RendererType::Enum::Count:
@@ -174,7 +190,12 @@ tl::expected<bgfx::ShaderHandle, Error> Shaders::getTextFragmentShader() {
 
     if (!shader) return tl::unexpected(Error::UNKNOWN);
 
-    return bgfx::createShader(bgfx::makeRef(shader, shader_size));
+    auto handle =  bgfx::createShader(bgfx::makeRef(shader, shader_size));
+    if (bgfx::isValid(handle)) {
+        return handle;
+    } else {
+        return tl::unexpected(Error::SHADER_ERR);
+    }
 }
 
 tl::expected<bgfx::ProgramHandle, Error> Shaders::getProgram() {
@@ -184,7 +205,12 @@ tl::expected<bgfx::ProgramHandle, Error> Shaders::getProgram() {
     auto fragment_shader = Shaders::getFragmentShader();
     if (!fragment_shader) return tl::unexpected(fragment_shader.error());
     
-    return bgfx::createProgram(*vertex_shader, *fragment_shader, true);
+    auto program =  bgfx::createProgram(*vertex_shader, *fragment_shader, true);
+    if (bgfx::isValid(program)) {
+        return program;
+    } else {
+        return tl::unexpected(Error::SHADER_PROGRAM_ERR);
+    }
 }
 
 tl::expected<bgfx::ProgramHandle, Error> Shaders::getTextProgram() {
@@ -194,7 +220,12 @@ tl::expected<bgfx::ProgramHandle, Error> Shaders::getTextProgram() {
     auto fragment_shader = Shaders::getTextFragmentShader();
     if (!fragment_shader) return tl::unexpected(fragment_shader.error());
     
-    return bgfx::createProgram(*vertex_shader, *fragment_shader, true);
+    auto program =  bgfx::createProgram(*vertex_shader, *fragment_shader, true);
+    if (bgfx::isValid(program)) {
+        return program;
+    } else {
+        return tl::unexpected(Error::SHADER_PROGRAM_ERR);
+    }
 }
 
 #ifdef SOUL_IS_WINDOWS
@@ -242,9 +273,9 @@ uint8_t Shaders::fragment_metal[] = { ${fragment_metal.bin} };
 uint32_t Shaders::fragment_metal_size = sizeof(Shaders::fragment_metal);
 
 uint8_t Shaders::vertex_text_metal[] = { ${vertex_text_metal.bin} };
-uint32_t Shaders::vertex_text_metal_size = sizeof(Shaders::vertex_metal);
+uint32_t Shaders::vertex_text_metal_size = sizeof(Shaders::vertex_text_metal);
 uint8_t Shaders::fragment_text_metal[] = { ${fragment_text_metal.bin} };
-uint32_t Shaders::fragment_text_metal_size = sizeof(Shaders::fragment_metal);
+uint32_t Shaders::fragment_text_metal_size = sizeof(Shaders::fragment_text_metal);
 #endif // SOUL_IS_MACOS
 
 #undef SOUL_SET_VERTEX_SHADER_AND_SIZE

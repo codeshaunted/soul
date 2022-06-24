@@ -136,10 +136,10 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 	bgfx::setViewRect(0, 0, 0, window_size->width, window_size->height);
 
 	auto new_program = Shaders::getProgram();
-	if (!new_program) return tl::unexpected(Error::UNKNOWN);
+	if (!new_program) return tl::unexpected(new_program.error());
 
 	auto text_program = Shaders::getTextProgram();
-	if (!text_program) return tl::unexpected(Error::UNKNOWN);
+	if (!text_program) return tl::unexpected(text_program.error());
 
 	// does nothing if they are already initialized.
 	Vertex::init();
