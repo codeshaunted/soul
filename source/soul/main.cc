@@ -58,12 +58,14 @@ int main(int argc, char** argv) {
 	auto root = GNonLeaf::create(false, 0.3, leaf3, node1).value();
 	gui.tree = root;
 
-	auto cmds = gui.toCmds(window.value()->getSize()->width, window.value()->getSize()->height);
+	auto cmds = gui.toCmds(window.value()->getFramebufferSize()->width, window.value()->getFramebufferSize()->height);
 
 	while (!window.value()->shouldClose()) {
-		renderer.value()->update(std::move(cmds));
+		renderer.value()->update(cmds);
 		auto event = window.value()->awaitEvent();
 	}
+
+	for (auto cmd : cmds) delete cmd;
 
 	delete *window;
 	delete *renderer;

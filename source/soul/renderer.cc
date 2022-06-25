@@ -72,28 +72,7 @@ void TextVertex::init() {
 	TextVertex::initialized = true;
 }
 
-Vertex triangle_vertices[] = {
-	{0.f, 0.f, 0.0f, 0xff0000ff},
-	{200.f, 100.f, 0.0f, 0xff00ff00},
-	{150.f, 200.f, 0.0f, 0xffff0000},
-	{200.f, 200.f, 0.0f, 0xffff0000},
-	{0.f, 0.f, 0.0f, 0xff0000ff},
-	{200.f, 100.f, 0.0f, 0xff00ff00},
-	{150.f, 200.f, 0.0f, 0xffff0000},
-	{200.f, 200.f, 0.0f, 0xffff0000},
-	{0.f, 0.f, 0.0f, 0xff0000ff},
-	{200.f, 100.f, 0.0f, 0xff00ff00},
-	{150.f, 200.f, 0.0f, 0xffff0000},
-	{200.f, 200.f, 0.0f, 0xffff0000},
-};
-
-uint16_t triangle_indices[] = {
-	0, 2, 1, 2, 3, 1, 0, 2, 1, 2, 3, 1, 0, 2, 1, 2, 3, 1
-};
-
 Renderer::~Renderer() {
-	bgfx::destroy(this->vertex_buffer);
-	bgfx::destroy(this->index_buffer);
 	bgfx::destroy(this->program);
 	bgfx::destroy(this->text_program);
 	bgfx::destroy(this->text_texture_uniform);
@@ -109,7 +88,7 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 	auto platform_data = new_window->getPlatformData();
 	if (!platform_data) return tl::unexpected(platform_data.error());
 
-	auto window_size = new_window->getSize();
+	auto window_size = new_window->getFramebufferSize();
 	if (!window_size) return tl::unexpected(window_size.error());
 
 	bgfx::setPlatformData(platform_data.value());
@@ -145,20 +124,6 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 	Vertex::init();
 	TextVertex::init();
 	
-	bgfx::DynamicVertexBufferHandle new_vertex_buffer = 
-		bgfx::createDynamicVertexBuffer(
-			bgfx::makeRef(triangle_vertices,
-			sizeof(triangle_vertices)),
-			Vertex::layout
-		);
-	bgfx::DynamicIndexBufferHandle new_index_buffer = 
-		bgfx::createDynamicIndexBuffer(
-			bgfx::makeRef(
-				triangle_indices, 
-				sizeof(triangle_indices)
-			)
-		);
-	
 	auto uniform_handle = bgfx::createUniform("s_CharTexture", bgfx::UniformType::Sampler);
 
 	uint64_t state = 0
@@ -172,8 +137,6 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 		new_window,
 		*new_program,
 		*text_program,
-		new_vertex_buffer,
-		new_index_buffer,
 		uniform_handle,
 		state
 	);
@@ -266,10 +229,10 @@ Error generateFontTextures(std::map<char, Character>& out, uint32_t line_height_
 	return Error::SUCCESS;
 }
 
-Error Renderer::update(std::vector<std::unique_ptr<DrawCmd::Any>> draw_commands) {
+Error Renderer::update(std::vector<DrawCmd::Any*>& draw_commands) {
 	auto view_matrix =	glm::mat4(1.0f);
 
-	auto window_size = this->window->getSize();
+	auto window_size = this->window->getFramebufferSize();
 	if (!window_size) return window_size.error();
 
 	// bgfx::reset(window_size->width, window_size->height);
@@ -288,9 +251,50 @@ Error Renderer::update(std::vector<std::unique_ptr<DrawCmd::Any>> draw_commands)
 
 	// main draw
 	bgfx::setState(this->bgfx_state_flags);
-	bgfx::setVertexBuffer(0, this->vertex_buffer);
-	bgfx::setIndexBuffer(this->index_buffer);
-	bgfx::submit(0, this->program);
+	
+	for (auto cmd : draw_commands) {
+		if (auto rectcmd = dynamic_cast<DrawCmd::Rect*>(cmd)) {
+			
+			bgfx::TransientVertexBuffer tvb;
+			bgfx::TransientIndexBuffer tib;
+			if (!bgfx::allocTransientBuffers(&tvb, Vertex::layout, 4, &tib, 6)) {
+				std::cerr << "failed to allocate trasient buffers" << std::endl;
+				return Error::RENDERER_ERR;
+			}
+
+			Vertex* tvbd = (Vertex*) tvb.data;
+
+			tvbd[0].x = rectcmd->x;
+			tvbd[0].y = rectcmd->y + rectcmd->height;
+			tvbd[0].color = rectcmd->color;
+			tvbd[1].x = rectcmd->x;
+			tvbd[1].y = rectcmd->y;
+			tvbd[1].color = rectcmd->color;
+			tvbd[2].x = rectcmd->x + rectcmd->width;
+			tvbd[2].y = rectcmd->y;
+			tvbd[2].color = rectcmd->color;
+			tvbd[3].x = rectcmd->x + rectcmd->width;
+			tvbd[3].y = rectcmd->y + rectcmd->height;
+			tvbd[3].color = rectcmd->color;
+
+			uint16_t* tibd = (uint16_t*) tib.data;
+
+			tibd[0] = 0;
+			tibd[1] = 2;
+			tibd[2] = 1;
+			tibd[3] = 0;
+			tibd[4] = 3;
+			tibd[5] = 2;
+
+			tib.startIndex = 0;
+
+			bgfx::setVertexBuffer(0, &tvb);
+			bgfx::setIndexBuffer(&tib);
+	
+			bgfx::setState(this->bgfx_state_flags);
+			bgfx::submit(0, this->program);
+		}
+	}
 
 	// draw text
 	this->drawText("Hello, world~", 20., 10.);
@@ -342,7 +346,7 @@ void Renderer::drawTextF(std::string_view text, float xpos, float ypos, F color_
 
 			bgfx::TransientVertexBuffer tvb;
 			bgfx::TransientIndexBuffer tib;
-			if (!bgfx::allocTransientBuffers(&tvb, TextVertex::layout, 4000, &tib, 6)) {
+			if (!bgfx::allocTransientBuffers(&tvb, TextVertex::layout, 4, &tib, 6)) {
 				std::cerr << "failed to allocate trasient buffers" << std::endl;
 				return;
 			}
@@ -397,16 +401,12 @@ Renderer::Renderer(
 	Window* new_window,
 	bgfx::ProgramHandle new_program,
 	bgfx::ProgramHandle text_program,
-	bgfx::DynamicVertexBufferHandle new_vertex_buffer,
-	bgfx::DynamicIndexBufferHandle new_index_buffer,
 	bgfx::UniformHandle new_uniform_handle,
 	uint64_t state
 ) {
 	this->window = new_window;
 	this->program = new_program;
 	this->text_program = text_program;
-	this->vertex_buffer = new_vertex_buffer;
-	this->index_buffer = new_index_buffer;
 	this->text_texture_uniform = new_uniform_handle;
 	this->bgfx_state_flags = state;
 }

@@ -33,14 +33,14 @@ struct Rect {
 };
 
 struct GNode {
-  virtual void toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>>& out, Rect bounding_box) {}
+  virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out, Rect bounding_box) {}
   virtual ~GNode() {}
 };
 
 struct GLeaf : GNode {
 	uint32_t color;
 
-  virtual void toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>>& out, Rect bounding_box) override;
+  virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out, Rect bounding_box) override;
 
   GLeaf(uint32_t box_color) {
     this->color = box_color;
@@ -58,7 +58,7 @@ struct GNonLeaf : GNode {
   GNode* first;
   GNode* second;
 
-  virtual void toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>>& out, Rect bounding_box) override;
+  virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out, Rect bounding_box) override;
 
   static std::optional<GNonLeaf*> create(bool split_horizontal, float split, GNode* first, GNode* second);
 
@@ -74,7 +74,7 @@ class GUI {
 public:
   static GUI create();
 
-  std::vector<std::unique_ptr<DrawCmd::Any>>
+  std::vector<DrawCmd::Any*>
   toCmds(unsigned int window_width, unsigned int window_height);
 // private:
   GNode* tree;

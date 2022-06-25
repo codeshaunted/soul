@@ -58,18 +58,17 @@ GNonLeaf::GNonLeaf(bool split_horizontal, float split, GNode* first, GNode* seco
 	this->second = second;
 }
 
-std::vector<std::unique_ptr<DrawCmd::Any>>
-GUI::toCmds(unsigned int window_width, unsigned int window_height) {
+std::vector<DrawCmd::Any*> GUI::toCmds(unsigned int window_width, unsigned int window_height) {
 	Rect root {0.f, 0.f, static_cast<float>(window_width), static_cast<float>(window_height), 0xff000000};
-	std::vector<std::unique_ptr<DrawCmd::Any>> ret;
+	std::vector<DrawCmd::Any*> ret;
 	// leavesToRectsRec(ret, root, *this->tree);
 	this->tree->toDrawCmds(ret, root);
 	return ret;
 }
 
-void GLeaf::toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>> &out, Rect bounding_box) {
+void GLeaf::toDrawCmds(std::vector<DrawCmd::Any*> &out, Rect bounding_box) {
 	// current.color = node_leaf.color;
-	out.push_back(std::make_unique<DrawCmd::Rect>(
+	out.push_back(new DrawCmd::Rect(
 		bounding_box.x,
 		bounding_box.y,
 		bounding_box.width,
@@ -78,7 +77,7 @@ void GLeaf::toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>> &out, Rect bou
 	));
 }
 
-void GNonLeaf::toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>> &out, Rect bounding_box) {
+void GNonLeaf::toDrawCmds(std::vector<DrawCmd::Any*> &out, Rect bounding_box) {
 	// calculate Rects for each child, and recurse them.
 	Rect r1, r2;
 	if (this->horizontal) {
@@ -107,16 +106,5 @@ void GNonLeaf::toDrawCmds(std::vector<std::unique_ptr<DrawCmd::Any>> &out, Rect 
 		this->second->toDrawCmds(out, r2);
 	}
 }
-
-// void leavesToRectsRec(
-// 	std::vector<std::unique_ptr<DrawCmd::Any>>& out,
-// 	Rect& current,
-// 	GNode& node
-// ) {
-// 	if (node.shouldBeDrawn()) {
-// 		GLeaf& node_leaf = static_cast<GLeaf&>(node);
-// 	} else {
-		
-// }
 
 }

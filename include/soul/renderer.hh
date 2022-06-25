@@ -154,14 +154,12 @@ class Renderer {
 		~Renderer();
 		static tl::expected<Renderer*, Error> create(Window* window);
 		// void setVertexAndIndexBuffers(std::vector<Vertex>& verts, std::vector<uint16_t> indices);
-		Error update(std::vector<std::unique_ptr<DrawCmd::Any>> draw_commands);
+		Error update(std::vector<DrawCmd::Any*>& draw_commands);
 	private:
 		Renderer(
 			Window* new_window,
 			bgfx::ProgramHandle new_program,
 			bgfx::ProgramHandle text_program,
-			bgfx::DynamicVertexBufferHandle new_vertex_buffer,
-			bgfx::DynamicIndexBufferHandle new_index_buffer,
 			bgfx::UniformHandle new_uniform_handle,
 			uint64_t state
 		);
@@ -171,8 +169,6 @@ class Renderer {
 		Window* window;
 		bgfx::ProgramHandle program;
 		bgfx::ProgramHandle text_program;
-		bgfx::DynamicVertexBufferHandle vertex_buffer;
-		bgfx::DynamicIndexBufferHandle index_buffer;
 		std::map<char, Character> char_map;
 		uint64_t bgfx_state_flags;
 		bgfx::UniformHandle text_texture_uniform;

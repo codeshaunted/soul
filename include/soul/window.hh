@@ -47,6 +47,7 @@ class Window {
 		 */
 		static tl::expected<Window*, Error> create(int width, int height, std::string title);
 		tl::expected<WindowSize, Error> getSize();
+		tl::expected<WindowSize, Error> getFramebufferSize();
 		tl::expected<WindowHandle, Error> getHandle();
 		tl::expected<bgfx::PlatformData, Error> getPlatformData();
 		bool shouldClose();
