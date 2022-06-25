@@ -251,7 +251,7 @@ Error Renderer::update(std::vector<DrawCmd::Any*>& draw_commands) {
 
 	// main draw
 	bgfx::setState(this->bgfx_state_flags);
-	
+
 	for (auto cmd : draw_commands) {
 		if (auto rectcmd = dynamic_cast<DrawCmd::Rect*>(cmd)) {
 			
@@ -293,35 +293,32 @@ Error Renderer::update(std::vector<DrawCmd::Any*>& draw_commands) {
 	
 			bgfx::setState(this->bgfx_state_flags);
 			bgfx::submit(0, this->program);
+		} else if (auto textcmd = dynamic_cast<DrawCmd::Text*>(cmd)) {
+			this->drawTextCmd(textcmd);
 		}
 	}
-
-	// draw text
-	this->drawText("Hello, world~", 20., 10.);
-	this->drawText("This text is red!", 20., 60., 0xff1111ff);
-	this->drawText("this text is big!", 20., 100., 0xffdd2222, 1.5f);
-
-	this->drawTextF("this text is colorful!", 20., 180., [](float x, float y) -> uint32_t {
-		float scale = 50.f;
-		uint8_t r = (uint8_t)255*sin(x/scale);
-		uint8_t g = (uint8_t)255*sin(x/scale+scale);
-		uint8_t b = (uint8_t)255*sin(x/scale+scale*2);
-		return 0xff000000 | b << 16 | g << 8 | r;
-	}, 1.0f);
 
 	bgfx::frame();
 
 	return Error::SUCCESS;
 }
 
+std::optional<glm::vec2> Renderer::drawTextCmd(DrawCmd::Text* text) {
+	// draw the first segment at the starting position.
+	auto draw_cur = this->drawText(text->first->text, text->x, text->y, text->first->color_abgr, text->scale);
 
-void Renderer::drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr, float scale) {
-	this->drawTextF(text, xpos, ypos, [color_abgr](float x, float y) -> uint32_t {return color_abgr;}, scale);
+	if (!draw_cur) return std::nullopt;
+
+	auto text_cur = text->first->next;
+	while (text_cur != nullptr) {
+		draw_cur = this->drawText(text_cur->text, draw_cur->x, draw_cur->y, text_cur->color_abgr, text->scale);
+		if (!draw_cur) return std::nullopt;
+		text_cur = text_cur->next;
+	}
+	return draw_cur;
 }
 
-// TODO: handle unicode
-template<typename F>
-void Renderer::drawTextF(std::string_view text, float xpos, float ypos, F color_fn, float scale) {
+std::optional<glm::vec2> Renderer::drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr, float scale) {
 
 	for (char c : text) {
 		if (!this->char_map.contains(c)) {
@@ -348,29 +345,29 @@ void Renderer::drawTextF(std::string_view text, float xpos, float ypos, F color_
 			bgfx::TransientIndexBuffer tib;
 			if (!bgfx::allocTransientBuffers(&tvb, TextVertex::layout, 4, &tib, 6)) {
 				std::cerr << "failed to allocate trasient buffers" << std::endl;
-				return;
+				return std::nullopt;
 			}
 
 			TextVertex* tvbd = (TextVertex*) tvb.data;
 
 			tvbd[0].x = x;
 			tvbd[0].y = y + h;
-			tvbd[0].color = color_fn(x,y+h);
+			tvbd[0].color = color_abgr; 
 			tvbd[0].u = 0;
 			tvbd[0].v = 0x7fff;
 			tvbd[1].x = x;
 			tvbd[1].y = y;
-			tvbd[1].color = color_fn(x,y);
+			tvbd[1].color = color_abgr; 
 			tvbd[1].u = 0;
 			tvbd[1].v = 0;
 			tvbd[2].x = x + w;
 			tvbd[2].y = y;
-			tvbd[2].color = color_fn(x+w,y);
+			tvbd[2].color = color_abgr; 
 			tvbd[2].u = 0x7fff;
 			tvbd[2].v = 0;
 			tvbd[3].x = x + w;
 			tvbd[3].y = y + h;
-			tvbd[3].color = color_fn(x+w,y+h);
+			tvbd[3].color = color_abgr; 
 			tvbd[3].u = 0x7fff;
 			tvbd[3].v = 0x7fff;
 
@@ -395,6 +392,8 @@ void Renderer::drawTextF(std::string_view text, float xpos, float ypos, F color_
 
 		xpos += char_data.getAdvancePx() * scale;
 	}
+
+	return glm::vec2(xpos, ypos);
 }
 
 Renderer::Renderer(

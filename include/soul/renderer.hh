@@ -24,7 +24,6 @@
 
 #include <cstdint>
 #include <ft2build.h>
-#include <memory>
 #include <optional>
 #include <string>
 #include FT_FREETYPE_H
@@ -125,25 +124,30 @@ struct Rect: Any {
 struct TextSegment {
 	std::string text;
 	uint32_t color_abgr;
+	TextSegment* next; // will be freed in destructor
+
+	TextSegment(std::string text, uint32_t color_abgr = 0xffffffff) {
+		this->text = text;
+		this->color_abgr = color_abgr;
+		this->next = nullptr;
+	}
+
+	~TextSegment();
 };
 
 struct Text: Any {
 	float x, y; // top left
 	float scale; // this will be ignored after the first node.
 
-	TextSegment first;
-	std::unique_ptr<TextSegment> next;
+	TextSegment* first; // will be freed in destructor
 
-	Text create(std::string text, float x, float y);
-	Text create(std::string text, float x, float y, uint32_t color);
-	Text create(std::string text, float x, float y, uint32_t color, float scale);
+	static Text* create(std::string text, float x, float y, uint32_t color = 0xffffffff, float scale = 1.0f);
 
-	void append(std::string text);
-	void append(std::string text, uint32_t color_abgr);
+	void append(std::string text, uint32_t color_abgr = 0xffffffff);
 
 	virtual void debugLog() override;
 
-	virtual ~Text() override {}
+	virtual ~Text() override;
 	Text() {}
 };
 
@@ -163,9 +167,8 @@ class Renderer {
 			bgfx::UniformHandle new_uniform_handle,
 			uint64_t state
 		);
-		template<typename F>
-		void drawTextF(std::string_view text, float xpos, float ypos, F color_fn, float scale = 1.0f);
-		void drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr = 0xffffffff, float scale = 1.0f);
+		std::optional<glm::vec2> drawTextCmd(DrawCmd::Text* text);
+		std::optional<glm::vec2> drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr = 0xffffffff, float scale = 1.0f);
 		Window* window;
 		bgfx::ProgramHandle program;
 		bgfx::ProgramHandle text_program;
