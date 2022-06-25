@@ -1,6 +1,6 @@
 // codeshaunted - soul
-// source/soul/renderer.cc
-// renderer class source file
+// source/soul/draw_cmd.cc
+// draw command source file
 // Copyright 2022 the soul team
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
