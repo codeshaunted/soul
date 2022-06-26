@@ -26,98 +26,98 @@
 namespace soul {
 
 enum class KeyAction {
-  PRESS,
-  RELEASE,
-  REPEAT,
-  UNKNOWN,
+	PRESS,
+	RELEASE,
+	REPEAT,
+	UNKNOWN,
 };
 
 KeyAction keyActionFromGLFW(int action);
 
 struct KeyboardModifiers {
-  bool mod_shift;
-  bool mod_control;
-  bool mod_alt;
-  bool mod_super;
-  bool mod_caps_lock;
-  bool mod_num_lock;
+	bool mod_shift;
+	bool mod_control;
+	bool mod_alt;
+	bool mod_super;
+	bool mod_caps_lock;
+	bool mod_num_lock;
 
-  static KeyboardModifiers fromGLFW(int glfwMods);
+	static KeyboardModifiers fromGLFW(int glfwMods);
 };
 
 struct KeyEvent {
 public:
 
-  int key;
-  int scancode;
-  KeyAction action;
-  KeyboardModifiers modifiers;
+	int key;
+	int scancode;
+	KeyAction action;
+	KeyboardModifiers modifiers;
 
-  const char* getName() {
-    return glfwGetKeyName(this->key, this->scancode);
-  }
+	const char* getName() {
+		return glfwGetKeyName(this->key, this->scancode);
+	}
 };
 
 struct TextEvent {
 public:
-  // TODO: support unicode at all lmao
-  uint8_t character;
+	// TODO: support unicode at all lmao
+	uint8_t character;
 };
 
 struct MouseCursorPosEvent {
 public:
-  double x, y;
+	double x, y;
 };
 
 struct MouseCursorEnterExitEvent {
 public:
-  bool entered;
+	bool entered;
 };
 
 enum class MouseButton {
-  LEFT = 0,
-  RIGHT = 1,
-  MIDDLE = 2,
-  BUTTON_4 = 3,
-  BUTTON_5 = 4,
-  BUTTON_6 = 5,
-  BUTTON_7 = 6,
-  BUTTON_8 = 7,
-  UNKNOWN_BUTTON,
+	LEFT = 0,
+	RIGHT = 1,
+	MIDDLE = 2,
+	BUTTON_4 = 3,
+	BUTTON_5 = 4,
+	BUTTON_6 = 5,
+	BUTTON_7 = 6,
+	BUTTON_8 = 7,
+	UNKNOWN_BUTTON,
 };
 
 MouseButton mouseButtonFromGLFW(int button);
 
 struct MouseButtonEvent {
 public:
-  MouseButton button;
-  // only press or release
-  KeyAction action;
-  KeyboardModifiers modifiers;
+	MouseButton button;
+	// only press or release
+	KeyAction action;
+	KeyboardModifiers modifiers;
 };
 
 struct ScrollEvent {
 public:
-  double x, y;
+	double x, y;
 };
 
 struct WindowResizeEvent {
 public:
-  unsigned int width, height;
+	unsigned int width, height;
 };
 
 // there is just no good way to format this is there...
 typedef std::variant
-    <
-      KeyEvent,
-      TextEvent,
-      MouseCursorPosEvent,
-      MouseCursorEnterExitEvent,
-      MouseButtonEvent,
-      ScrollEvent,
-      WindowResizeEvent
-    >
-  Event;
+		<
+			KeyEvent,
+			TextEvent,
+			MouseCursorPosEvent,
+			MouseCursorEnterExitEvent,
+			MouseButtonEvent,
+			ScrollEvent,
+			WindowResizeEvent
+		>
+	Event;
 
 }
 

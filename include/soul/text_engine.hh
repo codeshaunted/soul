@@ -36,51 +36,51 @@ namespace soul {
 typedef std::pair<unsigned int, unsigned int> CurPos;
 
 class Line {
-    public:
-        std::string text;
+	public:
+		std::string text;
 
-        ~Line();
-        static Line create();
-        static Line from(std::string _text);
-    private:
-        Line();
-        Line(std::string _text);
+		~Line();
+		static Line create();
+		static Line from(std::string _text);
+	private:
+		Line();
+		Line(std::string _text);
 };
 
 // typedef unsigned int idx;
 
 class TextEngine {
-    // TODO: make stuff private?
-    public:
-        // TODO: better datastructure for this?
-        std::vector<Line> lines;
+	// TODO: make stuff private?
+	public:
+		// TODO: better datastructure for this?
+		std::vector<Line> lines;
 
-        ~TextEngine();
+		~TextEngine();
 
-        static TextEngine create();
-        static tl::expected<TextEngine, std::string> from(std::string_view text);
+		static TextEngine create();
+		static tl::expected<TextEngine, std::string> from(std::string_view text);
 
-        /**
-         * convert the buffer to one string, separating lines with '\n'
-         */
-        std::string toString();
-        std::optional<std::vector<std::string_view>> getLines(unsigned int from, unsigned int to);
-        tl::expected<Line*, Error> getLine(unsigned int num);
-        unsigned int numLines();
-        bool canInsert(CurPos pos);
-        // These all return the new position of a cursor after doing the
-        // specified manipulation, e.g. after an inserted character.
-        std::optional<CurPos> newLineAfter(unsigned int line);
-        std::optional<CurPos> insert(CurPos pos, char to_insert);
-        std::optional<CurPos> insertStr(CurPos pos, std::string_view str);
-        // delete char *before* pos
-        std::optional<CurPos> deleteChar(CurPos pos);
-        // delete everything between start and end (inclusive) on given line
-        std::optional<CurPos> deleteRange(unsigned int line, unsigned int start, unsigned int end);
-        std::optional<CurPos> deleteRange(CurPos from, CurPos to);
+		/**
+		 * convert the buffer to one string, separating lines with '\n'
+		 */
+		std::string toString();
+		std::optional<std::vector<std::string_view>> getLines(unsigned int from, unsigned int to);
+		tl::expected<Line*, Error> getLine(unsigned int num);
+		unsigned int numLines();
+		bool canInsert(CurPos pos);
+		// These all return the new position of a cursor after doing the
+		// specified manipulation, e.g. after an inserted character.
+		std::optional<CurPos> newLineAfter(unsigned int line);
+		std::optional<CurPos> insert(CurPos pos, char to_insert);
+		std::optional<CurPos> insertStr(CurPos pos, std::string_view str);
+		// delete char *before* pos
+		std::optional<CurPos> deleteChar(CurPos pos);
+		// delete everything between start and end (inclusive) on given line
+		std::optional<CurPos> deleteRange(unsigned int line, unsigned int start, unsigned int end);
+		std::optional<CurPos> deleteRange(CurPos from, CurPos to);
 
-    private:
-        TextEngine(std::optional<std::vector<Line>> initial);
+	private:
+		TextEngine(std::optional<std::vector<Line>> initial);
 };
 
 void dPrintLines(std::vector<Line>& v);

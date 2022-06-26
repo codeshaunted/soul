@@ -20,7 +20,7 @@
 namespace soul {
 
 Font* Fonts::getDefaultFont() {
-    return &Fonts::default_font;
+	return &Fonts::default_font;
 }
 
 uint8_t Fonts::default_font_data[] = { ${CascadiaCode.ttf} };
