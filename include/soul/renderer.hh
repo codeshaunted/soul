@@ -31,35 +31,12 @@
 
 #include "window.hh" 
 #include "error.hh"
-#include <map>
 #include <vector>
 #include <cstddef>
 
+#include "font_manager.hh"
+
 namespace soul {
-
-struct Character {
-	struct {
-		bgfx::TextureHandle handle; // handle of the glyph texture
-		const bgfx::Memory* mem; // i think we need to free this later...
-		bgfx::TextureInfo info;
-	} texture;
-	glm::ivec2 size; // size of glyph
-	glm::ivec2 bearing; // Offset from baseline to top left of glyph
-	unsigned int advance; // offset to advance to next glyph
-
-	int getAdvancePx() {
-		// advance value is in 1/64th pixels
-		return this->advance >> 6;
-	}
-
-	inline std::optional<bgfx::TextureHandle>getMaybeHandle() {
-		if (this->size.x > 0 && this->size.y > 0) {
-			return this->texture.handle;
-		} else {
-			return std::nullopt;
-		}
-	}
-};
 
 struct Vertex {
 	float x;
@@ -137,11 +114,11 @@ struct TextSegment {
 
 struct Text: Any {
 	float x, y; // top left
-	float scale; // this will be ignored after the first node.
+	int size; // this will be ignored after the first node.
 
 	TextSegment* first; // will be freed in destructor
 
-	static Text* create(std::string text, float x, float y, uint32_t color = 0xffffffff, float scale = 1.0f);
+	static Text* create(std::string text, float x, float y, int size, uint32_t color = 0xffffffff);
 
 	void append(std::string text, uint32_t color_abgr = 0xffffffff);
 
@@ -168,16 +145,16 @@ class Renderer {
 			uint64_t state
 		);
 		std::optional<glm::vec2> drawTextCmd(DrawCmd::Text* text);
-		std::optional<glm::vec2> drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr = 0xffffffff, float scale = 1.0f);
+		std::optional<glm::vec2> drawText(std::string_view text, float xpos, float ypos, uint16_t size, uint32_t color_abgr = 0xffffffff);
 		Window* window;
 		bgfx::ProgramHandle program;
 		bgfx::ProgramHandle text_program;
-		std::map<char, Character> char_map;
+		FontMgr font_manager;
 		uint64_t bgfx_state_flags;
 		bgfx::UniformHandle text_texture_uniform;
 };
 
-Error generateFontTextures(std::map<char, Character>& out, uint32_t line_height_px);
+// Error generateFontTextures(std::map<char, Character>& out, uint32_t line_height_px);
 
 } // namespace soul
 

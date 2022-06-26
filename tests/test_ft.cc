@@ -7,7 +7,8 @@ TEST_CASE("simple freetype usage") {
   FT_Library ft;
   CHECK(FT_Init_FreeType(&ft)==0);
   FT_Face face;
-  CHECK(FT_New_Face(ft, "CascadiaCode.ttf", 0, &face) == 0);
+  auto d = soul::Fonts::getDefaultFont();
+  CHECK(FT_New_Memory_Face(ft, d->data, d->data_size, 0, &face) == 0);
   FT_Set_Pixel_Sizes(face, 0, 48);
   CHECK(FT_Load_Char(face, '{', FT_LOAD_RENDER) == 0);
   std::cout << "w " << face->glyph->bitmap.width << std::endl

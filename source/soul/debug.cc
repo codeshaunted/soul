@@ -34,7 +34,7 @@ void DrawCmd::Rect::debugLog() {
 
 void DrawCmd::Text::debugLog() {
 	std::cout
-		<< "[Text (" << this->x << "," << this->y << ") s" << this->scale;
+		<< "[Text (" << this->x << "," << this->y << ") s " << this->size << "px";
 	if (!this->first) {
 		std::cout << " {empty}";
 	} else {

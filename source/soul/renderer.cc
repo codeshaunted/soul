@@ -20,7 +20,6 @@
 #include "bgfx/bgfx.h"
 #include "bgfx/defines.h"
 #include "bgfx/platform.h"
-#include "freetype/freetype.h"
 #include "glm/fwd.hpp"
 #include "tl/expected.hpp"
 #include <cstdint>
@@ -32,14 +31,13 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <math.h>
 
-#define FT_TRY(expr, fail) if((expr)) {fail;}
-
 #include <iostream>
+#include <ostream>
 
 #include "shaders.hh"
 #include "fonts.hh"
 
-#define LINE_HEIGHT 48
+// #define LINE_HEIGHT 48
 
 namespace soul {
 
@@ -76,11 +74,7 @@ Renderer::~Renderer() {
 	bgfx::destroy(this->program);
 	bgfx::destroy(this->text_program);
 	bgfx::destroy(this->text_texture_uniform);
-	for (auto & [k, v]: this->char_map) {
-		if (auto h = v.getMaybeHandle()) {
-			bgfx::destroy(*h);
-		}
-	}
+	this->font_manager.releaseAllChars();
 	bgfx::shutdown();
 }
 
@@ -143,90 +137,7 @@ tl::expected<Renderer*, Error> Renderer::create(Window* new_window) {
 
 	// bgfx::setDebug(BGFX_DEBUG_WIREFRAME);
 
-	auto g = generateFontTextures(r->char_map, LINE_HEIGHT);
-	if (g != Error::SUCCESS) return tl::unexpected(g);
-
 	return r;
-}
-
-Error generateFontTextures(std::map<char, Character>& out, uint32_t line_height_px) {
-	FT_Library ft;
-	FT_TRY(FT_Init_FreeType(&ft), return Error::FREETYPE_ERR);
-
-	Font* font = Fonts::getDefaultFont();
-	FT_Face font_face;
-	FT_TRY(FT_New_Memory_Face(ft, font->data, font->data_size, 0, &font_face), 
-		std::cerr << "failed to get font" << std::endl; return Error::FREETYPE_ERR
-	);
-
-	FT_Set_Pixel_Sizes(font_face, 0, line_height_px);
-
-	if (!bgfx::isTextureValid(0, false, 1, bgfx::TextureFormat::R8, 0)) {
-		std::cerr << "texture format is invalid!" << std::endl;
-		return Error::UNKNOWN;
-	}
-
-	for (uint8_t c = 0; c < 128; c++) {
-		FT_TRY(FT_Load_Char(font_face, c, FT_LOAD_RENDER), return Error::FREETYPE_ERR);
-		
-		// generate bgfx texture from glyph bitmap
-		Character result;
-		
-		result.texture.handle = BGFX_INVALID_HANDLE;
-		result.texture.mem = nullptr;
-		// if there is anything to draw (basically anything except ' '), create the texture
-		if (font_face->glyph->bitmap.width) {
-			if (font_face->glyph->bitmap.pitch < 0) {
-				std::cerr << "negative pitch unimplemented" << std::endl;
-				return Error::FREETYPE_ERR;
-			}
-
-			result.texture.mem = bgfx::copy(
-				font_face->glyph->bitmap.buffer,
-				font_face->glyph->bitmap.pitch * font_face->glyph->bitmap.rows
-			);
-			result.texture.handle = bgfx::createTexture2D(
-				font_face->glyph->bitmap.width,
-				font_face->glyph->bitmap.rows,
-				false,
-				1,
-				bgfx::TextureFormat::R8,
-				BGFX_SAMPLER_MAG_POINT
-				| BGFX_SAMPLER_MIN_POINT
-				| BGFX_SAMPLER_U_MIRROR
-				| BGFX_SAMPLER_V_MIRROR, // is this right??? should this just use 0?
-				result.texture.mem
-			);
-
-			if (result.texture.handle.idx == bgfx::kInvalidHandle) {
-				std::cerr << "WARN: got invalid handle when generating texture for char 0x" << std::hex << c << std::endl;
-				return Error::UNKNOWN;
-			}
-
-			bgfx::calcTextureSize(
-				result.texture.info,
-				font_face->glyph->bitmap.width,
-				font_face->glyph->bitmap.rows,
-				1, // is this the right value???? hopefully it doesn't matter...
-				false,
-				false,
-				1,
-				bgfx::TextureFormat::R8
-			);
-		}
-
-		result.size = glm::ivec2(font_face->glyph->bitmap.width, font_face->glyph->bitmap.rows);
-		result.bearing = glm::ivec2(font_face->glyph->bitmap_left, font_face->glyph->bitmap_top);
-		result.advance = font_face->glyph->advance.x;
-
-		out.insert(std::pair<char,Character>(c, result));
-	}
-
-	// clean up freetype
-	FT_Done_Face(font_face);
-	FT_Done_FreeType(ft);
-
-	return Error::SUCCESS;
 }
 
 Error Renderer::update(std::vector<DrawCmd::Any*>& draw_commands) {
@@ -305,41 +216,51 @@ Error Renderer::update(std::vector<DrawCmd::Any*>& draw_commands) {
 
 std::optional<glm::vec2> Renderer::drawTextCmd(DrawCmd::Text* text) {
 	// draw the first segment at the starting position.
-	auto draw_cur = this->drawText(text->first->text, text->x, text->y, text->first->color_abgr, text->scale);
+	auto draw_cur = this->drawText(text->first->text, text->x, text->y, text->size, text->first->color_abgr);
 
 	if (!draw_cur) return std::nullopt;
 
 	auto text_cur = text->first->next;
 	while (text_cur != nullptr) {
-		draw_cur = this->drawText(text_cur->text, draw_cur->x, draw_cur->y, text_cur->color_abgr, text->scale);
+		draw_cur = this->drawText(text_cur->text, draw_cur->x, draw_cur->y, text->size, text_cur->color_abgr);
 		if (!draw_cur) return std::nullopt;
 		text_cur = text_cur->next;
 	}
 	return draw_cur;
 }
 
-std::optional<glm::vec2> Renderer::drawText(std::string_view text, float xpos, float ypos, uint32_t color_abgr, float scale) {
+std::optional<glm::vec2> Renderer::drawText(std::string_view text, float xpos, float ypos, uint16_t size, uint32_t color_abgr) {
+
+	if (!this->font_manager.isInitialized()) {
+		this->font_manager.init_default();
+	}
 
 	for (char c : text) {
-		if (!this->char_map.contains(c)) {
-			// for now, skip unknown characters.
+		// if (!this->char_map.contains(c)) {
+		// 	// for now, skip unknown characters.
+		// 	continue;
+		// }
+		// Character& char_data = this->char_map.at(c);
+		auto maybe_char_data = this->font_manager.getChar(c, size);
+		if (!maybe_char_data) {
+			std::cerr << "failed to draw invalid character: " << std::hex << c << " with size " << size << std::endl;
 			continue;
 		}
-		Character& char_data = this->char_map.at(c);
+		Character* char_data = maybe_char_data.value();
 
-		if (char_data.size.x > 0 && char_data.size.y > 0) {
+		if (char_data->size.x > 0 && char_data->size.y > 0) {
 			// draw this character.
 
-			float x = xpos + char_data.bearing.x * scale;
+			float x = xpos + char_data->bearing.x;
 			// this is close enough but there is still something wrong with it.
 			// as scale increases, the top of the text gets farther from the given
 			// y position. If it worked properly, the top left corner of the text
 			// would stay aligned with the given y position. This is also an issue
 			// at scale = 1.0, but it is less noticable.
-			float y = ypos + (LINE_HEIGHT - char_data.bearing.y) * scale;
+			float y = ypos + (size - char_data->bearing.y);
 
-			float w = char_data.size.x * scale;
-			float h = char_data.size.y * scale;
+			float w = char_data->size.x;
+			float h = char_data->size.y;
 
 			bgfx::TransientVertexBuffer tvb;
 			bgfx::TransientIndexBuffer tib;
@@ -384,13 +305,13 @@ std::optional<glm::vec2> Renderer::drawText(std::string_view text, float xpos, f
 
 			bgfx::setVertexBuffer(0, &tvb);
 			bgfx::setIndexBuffer(&tib);
-			bgfx::setTexture(0, this->text_texture_uniform, char_data.texture.handle);
+			bgfx::setTexture(0, this->text_texture_uniform, char_data->texture.handle);
 	
 			bgfx::setState(this->bgfx_state_flags);
 			bgfx::submit(0, this->text_program);
 		}
 
-		xpos += char_data.getAdvancePx() * scale;
+		xpos += char_data->getAdvancePx();
 	}
 
 	return glm::vec2(xpos, ypos);

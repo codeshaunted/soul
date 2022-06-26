@@ -19,11 +19,11 @@
 
 namespace soul {
 
-DrawCmd::Text* DrawCmd::Text::create(std::string text, float x, float y, uint32_t color, float scale) {
+DrawCmd::Text* DrawCmd::Text::create(std::string text, float x, float y, int size, uint32_t color) {
 	auto ret = new Text();
 	ret->x = x;
 	ret->y = y;
-	ret->scale = scale;
+	ret->size = size;
 	ret->first = new TextSegment(text, color);
 	return ret;
 }

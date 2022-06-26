@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
 	auto root = GNonLeaf::create(false, 0.3, leaf3, node1).value();
 	gui.tree = root;
 
-	auto text = DrawCmd::Text::create("this is", 20.0, 200.0);
+	auto text = DrawCmd::Text::create("this is", 20.0, 200.0, 48);
 	text->append(" one ", 0xffff0000);
 	text->append("draw ", 0xff00ff00);
 	text->append("command!", 0xff0000ff);
