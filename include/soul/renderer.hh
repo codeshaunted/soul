@@ -118,7 +118,7 @@ struct Text: Any {
 
 	TextSegment* first; // will be freed in destructor
 
-	static Text* create(std::string text, float x, float y, int size, uint32_t color = 0xffffffff);
+	static Text* create(std::string text, float x, float y, int size, uint32_t color_abgr = 0xffffffff);
 
 	void append(std::string text, uint32_t color_abgr = 0xffffffff);
 

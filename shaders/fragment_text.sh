@@ -24,5 +24,5 @@ SAMPLER2D(s_CharTexture, 0);
 uniform vec4 u_color;
 
 void main() {
-	gl_FragColor = vec4(v_color0.r, v_color0.g, v_color0.b, 1.0) * texture2D(s_CharTexture, v_texcoord0).r;
+	gl_FragColor = vec4(v_color0.r, v_color0.g, v_color0.b, v_color0.a) * texture2D(s_CharTexture, v_texcoord0).r;
 }

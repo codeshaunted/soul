@@ -63,9 +63,14 @@ int main(int argc, char** argv) {
 	text->append("draw ", 0xff00ff00);
 	text->append("command!", 0xff0000ff);
 
+	auto text2 = DrawCmd::Text::create("big text", 20.0, 250.0, 64);
+	auto text3 = DrawCmd::Text::create("bigger text", 20.0, 350.0, 240, 0x88ff00aa);
+
 	auto cmds = gui.toCmds(window.value()->getFramebufferSize()->width, window.value()->getFramebufferSize()->height);
 
 	cmds.push_back(text);
+	cmds.push_back(text2);
+	cmds.push_back(text3);
 
 	while (!window.value()->shouldClose()) {
 		renderer.value()->update(cmds);

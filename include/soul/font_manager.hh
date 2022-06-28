@@ -34,7 +34,7 @@ namespace soul {
 struct Character {
 	struct {
 		bgfx::TextureHandle handle; // handle of the glyph texture
-		const bgfx::Memory* mem; // i think we need to free this later...
+		const bgfx::Memory* mem;
 		bgfx::TextureInfo info;
 	} texture;
 	glm::ivec2 size; // size of glyph
