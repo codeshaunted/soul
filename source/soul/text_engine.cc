@@ -292,4 +292,9 @@ std::optional<CurPos> TextEngine::deleteRange(CurPos from, CurPos to) {
 	return CurPos{from.first, from.second};
 }
 
+CurPos TextEngine::clear() {
+	this->lines.clear();
+	return {0, 0};
+}
+
 } // namespace soul

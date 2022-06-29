@@ -15,6 +15,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef SOUL_FONT_MANAGER_HH
+#define SOUL_FONT_MANAGER_HH
+
 #include "bgfx/bgfx.h"
 #include "glm/glm.hpp"
 
@@ -99,4 +102,4 @@ class FontMgr {
 
 }
 
-//		
+#endif // SOUL_FONT_MANAGER_HH

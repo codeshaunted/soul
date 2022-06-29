@@ -79,6 +79,9 @@ class TextEngine {
 		std::optional<CurPos> deleteRange(unsigned int line, unsigned int start, unsigned int end);
 		std::optional<CurPos> deleteRange(CurPos from, CurPos to);
 
+		// delete everything.
+		CurPos clear();
+
 	private:
 		TextEngine(std::optional<std::vector<Line>> initial);
 };
