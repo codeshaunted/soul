@@ -34,7 +34,8 @@ set(SOUL_SOURCE_FILES
     "${SOUL_SOURCE_DIR}/debug.cc"
     "${SOUL_SOURCE_DIR}/draw_cmd.cc"
     "${SOUL_SOURCE_DIR}/font_manager.cc"
-    "${SOUL_SOURCE_DIR}/utils.cc")
+    "${SOUL_SOURCE_DIR}/utils.cc"
+    "${SOUL_SOURCE_DIR}/editor.cc")
 
 set(SOUL_INCLUDE_DIRECTORIES
     "${CMAKE_SOURCE_DIR}/include/soul"
