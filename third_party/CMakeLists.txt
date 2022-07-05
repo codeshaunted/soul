@@ -38,3 +38,8 @@ FetchContent_Declare(
     URL https://github.com/microsoft/cascadia-code/releases/download/v2111.01/CascadiaCode-2111.01.zip
 )
 FetchContent_MakeAvailable(cascadia-code)
+
+# libtinyfiledialogs
+add_library(tinyfiledialogs STATIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/libtinyfiledialogs/tinyfiledialogs.c"
+    )

@@ -20,7 +20,9 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/sources.cmake")
 set(SOUL_LINK_LIBRARIES
 	glfw
 	bgfx
-	freetype)
+	freetype
+	tinyfiledialogs
+	)
 
 set(SOUL_COMPILE_DEFINITIONS)
 
@@ -44,7 +46,9 @@ add_executable(soul ${SOUL_MAIN} ${SOUL_SOURCE_FILES})
 
 target_include_directories(soul PUBLIC ${SOUL_INCLUDE_DIRECTORIES})
 
-target_link_libraries(soul PUBLIC ${SOUL_LINK_LIBRARIES})
+target_link_libraries(soul PRIVATE ${SOUL_LINK_LIBRARIES})
+#for libtinyfiledialogs
+target_link_directories(soul PRIVATE "${CMAKE_SOURCE_DIR}/third_party")
 
 target_compile_definitions(soul PUBLIC ${SOUL_COMPILE_DEFINITIONS})
 

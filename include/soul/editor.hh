@@ -20,6 +20,7 @@
 
 #include <string_view>
 #include "text_engine.hh"
+#include <filesystem>
 
 namespace soul {
 
@@ -28,9 +29,26 @@ public:
 	bool openFile(std::string_view path);
 	bool save();
 	bool saveAs();
+	bool isModified() {
+		return this->modified;
+	}
+	
+	// as much as i hate initializer lists, this seems to be the only way
+	// of doing this that clang accepts.
+	Editor() : engine(TextEngine::create()) {
+		this->cursor = {0,0};
+		this->modified = false;
+	}
 private:
 	CurPos cursor;
 	TextEngine engine;
+	bool modified;
+	std::optional<std::filesystem::path> filePath;
+
+	/**
+	 * just returns false if filepath isn't set
+	 */
+	bool saveInternal();
 };
 
 }
