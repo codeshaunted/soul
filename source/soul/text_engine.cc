@@ -128,6 +128,7 @@ tl::expected<Line*, Error> TextEngine::getLine(unsigned int num) {
 }
 
 bool TextEngine::canInsert(CurPos pos) {
+	if (pos.first == this->lines.size()) return pos.second == 0;
 	return pos.first < this->lines.size() &&
 		   pos.second <= this->lines[pos.first].text.length();
 }
@@ -145,6 +146,12 @@ std::optional<CurPos> TextEngine::insert(CurPos pos, char to_insert) {
 		std::cerr << "cannot insert at " << pos.first << ":" << pos.second << "!" << std::endl;
 		return std::nullopt;
 	}
+
+	// first check if this is past the end of the file at a new line
+	if (pos.first == this->lines.size()) {
+		this->lines.push_back(Line::create());
+	}
+
 	if (to_insert == '\n') { // handle newline insertion
 		std::string& line_ref = this->lines[pos.first].text;
 		if (pos.second == line_ref.length()) {
@@ -173,7 +180,7 @@ std::optional<CurPos> TextEngine::insert(CurPos pos, char to_insert) {
 
 std::optional<CurPos> TextEngine::insertStr(CurPos pos, std::string_view str) {
 	if (!this->canInsert(pos)) {
-		// std::cerr << "cannot insert at " << pos.first << ":" << pos.second << "!" << std::endl;
+		std::cerr << "cannot insert at " << pos.first << ":" << pos.second << "!" << std::endl;
 		return std::nullopt;
 	}
 	auto new_lines = splitIntoLines(str);
@@ -186,6 +193,11 @@ std::optional<CurPos> TextEngine::insertStr(CurPos pos, std::string_view str) {
 	//  line+n: {input[n]]}
 	//    last: {input[last]}{end}
 	// so its kinda complicated and confusing :(
+
+	// first check if this is past the end of the file at a new line
+	if (pos.first == this->lines.size()) {
+		this->lines.push_back(Line::create());
+	}
 
 	std::string& current_line = this->lines[pos.first].text;
 

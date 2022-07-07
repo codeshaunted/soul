@@ -43,6 +43,16 @@ TEST_CASE("basic TextEngine text manipulation") {
     CHECK(engine.toString() == "line 1\nline 2\nline 3\nline 4\nline 5\nline 5\n");
   }
 
+  SUBCASE("insertStr from empty") {
+    CHECK(engine.clear() == CurPos{0,0});
+    CHECK(engine.numLines() == 0);
+    auto p = engine.insertStr({0, 0}, "this is\na string");
+
+    CHECK(p.has_value());
+    CHECK(engine.numLines() == 2);
+    CHECK(engine.toString() == "this is\na string\n");
+  }
+
   SUBCASE("deleteRange") {
     auto p = engine.deleteRange({1, 2}, {2, 3});
 
