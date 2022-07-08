@@ -185,25 +185,33 @@ Error Renderer::update(std::vector<DrawCmd::Any*>& draw_commands) {
 Error Renderer::drawRect(DrawCmd::Rect& rect) {
 	bgfx::TransientVertexBuffer tvb;
 	bgfx::TransientIndexBuffer tib;
-	if (!bgfx::allocTransientBuffers(&tvb, Vertex::layout, 4, &tib, 6)) {
+	if (!bgfx::allocTransientBuffers(&tvb, TextVertex::layout, 4, &tib, 6)) {
 		std::cerr << "failed to allocate trasient buffers" << std::endl;
 		return Error::RENDERER_ERR;
 	}
 
-	Vertex* tvbd = (Vertex*) tvb.data;
+	TextVertex* tvbd = (TextVertex*) tvb.data;
 
 	tvbd[0].x = rect.x;
 	tvbd[0].y = rect.y + rect.height;
 	tvbd[0].color = rect.color;
+	tvbd[0].u = 0;
+	tvbd[0].v = 0;
 	tvbd[1].x = rect.x;
 	tvbd[1].y = rect.y;
 	tvbd[1].color = rect.color;
+	tvbd[1].u = 0;
+	tvbd[1].v = 0;
 	tvbd[2].x = rect.x + rect.width;
 	tvbd[2].y = rect.y;
 	tvbd[2].color = rect.color;
+	tvbd[2].u = 0;
+	tvbd[2].v = 0;
 	tvbd[3].x = rect.x + rect.width;
 	tvbd[3].y = rect.y + rect.height;
 	tvbd[3].color = rect.color;
+	tvbd[3].u = 0;
+	tvbd[3].v = 0;
 
 	uint16_t* tibd = (uint16_t*) tib.data;
 
