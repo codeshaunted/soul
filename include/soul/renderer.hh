@@ -144,6 +144,7 @@ class Renderer {
 			bgfx::UniformHandle new_uniform_handle,
 			uint64_t state
 		);
+		Error drawRect(DrawCmd::Rect& rect);
 		std::optional<glm::vec2> drawTextCmd(DrawCmd::Text* text);
 		std::optional<glm::vec2> drawText(std::string_view text, float xpos, float ypos, uint16_t size, uint32_t color_abgr = 0xffffffff);
 		Window* window;

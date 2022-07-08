@@ -16,6 +16,7 @@
 // limitations under the License.
 
 #include "editor.hh"
+#include "GLFW/glfw3.h"
 #include "events.hh"
 #include "renderer.hh"
 #include "utils.hh"
@@ -27,7 +28,7 @@
 #include <ostream>
 #include <optional>
 
-#define SCROLL_MULTIPLIER -10.0
+#define SCROLL_MULTIPLIER -30.0
 
 namespace soul {
 
@@ -148,14 +149,32 @@ void Editor::toDrawCmds(std::vector<DrawCmd::Any *> &out, Rect bounding_box) {
 		auto from_top_of_view_px = from_top_px - this->scroll_offset_y;
 		auto screenspace_y_px = bounding_box.y + from_top_of_view_px;
 		auto screenspace_x_px = bounding_box.x + this->left_margin_px - this->scroll_offset_x;
-		auto cmd = DrawCmd::Text::create(
-			// TODO: perhaps avoid copying the string here? this code could be optimized a lot.
-			this->engine.getLine(i).value()->text,
-			screenspace_x_px,
-			screenspace_y_px,
-			this->line_height_px
-		);
-		out.push_back(cmd);
+		if (i != this->cursor.first) {
+			auto cmd = DrawCmd::Text::create(
+				// TODO: perhaps avoid copying the string here? this code could be optimized a lot.
+				this->engine.getLine(i).value()->text,
+				screenspace_x_px,
+				screenspace_y_px,
+				this->line_height_px
+			);
+			out.push_back(cmd);
+		} else {
+			std::string& line = this->engine.getLine(i).value()->text;
+			std::string before_cur = line.substr(0, this->cursor.second);
+			auto cmd = DrawCmd::Text::create(
+				before_cur,
+				screenspace_x_px,
+				screenspace_y_px,
+				this->line_height_px
+			);
+			// MEGA HACK: usage of ascii bell character to represent cursor.
+			cmd->append("\x07");
+			if (this->cursor.second < line.length()) {
+				cmd->append(line.substr(this->cursor.second));
+			}
+			out.push_back(cmd);
+		}
+		
 	}
 }
 
@@ -176,6 +195,33 @@ void Editor::handleEvent(Event e) {
 			this->scroll_offset_x += SCROLL_MULTIPLIER * r.x;
 			if (this->scroll_offset_x < 0) {
 				this->scroll_offset_x = 0;
+			}
+		} else if constexpr (std::is_same_v<T, KeyEvent>) {
+			if (r.action == KeyAction::PRESS) {
+				switch (r.key) {
+					case GLFW_KEY_UP: {
+						this->cursor.first = this->cursor.first <= 0 ? 0 : this->cursor.first - 1;
+						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
+						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second + 1;
+						break;
+					}
+					case GLFW_KEY_DOWN: {
+						this->cursor.first =
+							this->cursor.first >= this->engine.numLines() ? this->engine.numLines() : this->cursor.first + 1;
+						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
+						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second + 1;
+						break;
+					}
+					case GLFW_KEY_LEFT: {
+						this->cursor.second = this->cursor.second <= 0 ? 0 : this->cursor.second - 1;
+						break;
+					}
+					case GLFW_KEY_RIGHT: {
+						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
+						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second + 1;
+						break;
+					}
+				}
 			}
 		} else {
 

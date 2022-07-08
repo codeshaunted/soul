@@ -38,6 +38,8 @@
 #include "fonts.hh"
 
 #define TAB_SIZE 4
+#define CURSOR_WIDTH 6
+#define CURSOR_COLOR_ABGR 0xFF2222FF
 
 namespace soul {
 
@@ -165,45 +167,11 @@ Error Renderer::update(std::vector<DrawCmd::Any*>& draw_commands) {
 
 	for (auto cmd : draw_commands) {
 		if (auto rectcmd = dynamic_cast<DrawCmd::Rect*>(cmd)) {
-			
-			bgfx::TransientVertexBuffer tvb;
-			bgfx::TransientIndexBuffer tib;
-			if (!bgfx::allocTransientBuffers(&tvb, Vertex::layout, 4, &tib, 6)) {
-				std::cerr << "failed to allocate trasient buffers" << std::endl;
-				return Error::RENDERER_ERR;
+			auto result = this->drawRect(*rectcmd);
+			if (result != Error::SUCCESS) {
+				std::cerr << "failed drawing rectangle! " << (int)result << std::endl;
+				return result;
 			}
-
-			Vertex* tvbd = (Vertex*) tvb.data;
-
-			tvbd[0].x = rectcmd->x;
-			tvbd[0].y = rectcmd->y + rectcmd->height;
-			tvbd[0].color = rectcmd->color;
-			tvbd[1].x = rectcmd->x;
-			tvbd[1].y = rectcmd->y;
-			tvbd[1].color = rectcmd->color;
-			tvbd[2].x = rectcmd->x + rectcmd->width;
-			tvbd[2].y = rectcmd->y;
-			tvbd[2].color = rectcmd->color;
-			tvbd[3].x = rectcmd->x + rectcmd->width;
-			tvbd[3].y = rectcmd->y + rectcmd->height;
-			tvbd[3].color = rectcmd->color;
-
-			uint16_t* tibd = (uint16_t*) tib.data;
-
-			tibd[0] = 0;
-			tibd[1] = 2;
-			tibd[2] = 1;
-			tibd[3] = 0;
-			tibd[4] = 3;
-			tibd[5] = 2;
-
-			tib.startIndex = 0;
-
-			bgfx::setVertexBuffer(0, &tvb);
-			bgfx::setIndexBuffer(&tib);
-	
-			bgfx::setState(this->bgfx_state_flags);
-			bgfx::submit(0, this->program);
 		} else if (auto textcmd = dynamic_cast<DrawCmd::Text*>(cmd)) {
 			this->drawTextCmd(textcmd);
 		}
@@ -211,6 +179,48 @@ Error Renderer::update(std::vector<DrawCmd::Any*>& draw_commands) {
 
 	bgfx::frame();
 
+	return Error::SUCCESS;
+}
+
+Error Renderer::drawRect(DrawCmd::Rect& rect) {
+	bgfx::TransientVertexBuffer tvb;
+	bgfx::TransientIndexBuffer tib;
+	if (!bgfx::allocTransientBuffers(&tvb, Vertex::layout, 4, &tib, 6)) {
+		std::cerr << "failed to allocate trasient buffers" << std::endl;
+		return Error::RENDERER_ERR;
+	}
+
+	Vertex* tvbd = (Vertex*) tvb.data;
+
+	tvbd[0].x = rect.x;
+	tvbd[0].y = rect.y + rect.height;
+	tvbd[0].color = rect.color;
+	tvbd[1].x = rect.x;
+	tvbd[1].y = rect.y;
+	tvbd[1].color = rect.color;
+	tvbd[2].x = rect.x + rect.width;
+	tvbd[2].y = rect.y;
+	tvbd[2].color = rect.color;
+	tvbd[3].x = rect.x + rect.width;
+	tvbd[3].y = rect.y + rect.height;
+	tvbd[3].color = rect.color;
+
+	uint16_t* tibd = (uint16_t*) tib.data;
+
+	tibd[0] = 0;
+	tibd[1] = 2;
+	tibd[2] = 1;
+	tibd[3] = 0;
+	tibd[4] = 3;
+	tibd[5] = 2;
+
+	tib.startIndex = 0;
+
+	bgfx::setVertexBuffer(0, &tvb);
+	bgfx::setIndexBuffer(&tib);
+
+	bgfx::setState(this->bgfx_state_flags);
+	bgfx::submit(0, this->program);
 	return Error::SUCCESS;
 }
 
@@ -237,11 +247,23 @@ std::optional<glm::vec2> Renderer::drawText(std::string_view text, float xpos, f
 
 	for (char c : text) {
 		
+		// handle control characters
 		if (c == '\t') {
 			// tab characters seem to need special handling- freetype (with cascadia
 			// code) just generates blank squares.
 			auto space = this->font_manager.getChar(' ', size).value();
 			xpos += TAB_SIZE * space->getAdvancePx();
+			continue;
+		} else if (c == '\x07') { // HACK: bell character for cursor
+			float cursor_x = xpos - CURSOR_WIDTH / 2.0;
+			DrawCmd::Rect cursor(
+				cursor_x,
+				ypos + 4, // TODO: replace this with something that isn't just eyeballed.
+				CURSOR_WIDTH,
+				size,
+				CURSOR_COLOR_ABGR
+			);
+			this->drawRect(cursor);
 			continue;
 		}
 

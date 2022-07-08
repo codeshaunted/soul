@@ -48,6 +48,7 @@ public:
 
 	uint32_t bg_color_abgr = 0xFF333333;
 	uint32_t text_color_abgr = 0xFFEEEEEE;
+
 	uint16_t line_height_px = 32;
 	uint16_t left_margin_px = 10;
 
