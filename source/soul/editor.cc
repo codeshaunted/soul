@@ -197,7 +197,7 @@ void Editor::handleEvent(Event e) {
 				this->scroll_offset_x = 0;
 			}
 		} else if constexpr (std::is_same_v<T, KeyEvent>) {
-			if (r.action == KeyAction::PRESS) {
+			if (r.action == KeyAction::PRESS || r.action == KeyAction::REPEAT) {
 				switch (r.key) {
 					case GLFW_KEY_UP: {
 						this->cursor.first = this->cursor.first <= 0 ? 0 : this->cursor.first - 1;
