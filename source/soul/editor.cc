@@ -202,14 +202,14 @@ void Editor::handleEvent(Event e) {
 					case GLFW_KEY_UP: {
 						this->cursor.first = this->cursor.first <= 0 ? 0 : this->cursor.first - 1;
 						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
-						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second + 1;
+						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second;
 						break;
 					}
 					case GLFW_KEY_DOWN: {
 						this->cursor.first =
 							this->cursor.first >= this->engine.numLines() ? this->engine.numLines() : this->cursor.first + 1;
 						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
-						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second + 1;
+						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second;
 						break;
 					}
 					case GLFW_KEY_LEFT: {
