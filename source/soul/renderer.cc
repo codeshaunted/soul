@@ -37,7 +37,7 @@
 #include "shaders.hh"
 #include "fonts.hh"
 
-// #define LINE_HEIGHT 48
+#define TAB_SIZE 4
 
 namespace soul {
 
@@ -236,11 +236,15 @@ std::optional<glm::vec2> Renderer::drawText(std::string_view text, float xpos, f
 	}
 
 	for (char c : text) {
-		// if (!this->char_map.contains(c)) {
-		// 	// for now, skip unknown characters.
-		// 	continue;
-		// }
-		// Character& char_data = this->char_map.at(c);
+		
+		if (c == '\t') {
+			// tab characters seem to need special handling- freetype (with cascadia
+			// code) just generates blank squares.
+			auto space = this->font_manager.getChar(' ', size).value();
+			xpos += TAB_SIZE * space->getAdvancePx();
+			continue;
+		}
+
 		auto maybe_char_data = this->font_manager.getChar(c, size);
 		if (!maybe_char_data) {
 			std::cerr << "failed to draw invalid character: " << std::hex << c << " with size " << size << std::endl;

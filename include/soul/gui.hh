@@ -34,6 +34,7 @@ struct Rect {
 
 struct GNode {
   virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out, Rect bounding_box) {}
+  virtual void handleEvent(Event e) {}
   virtual ~GNode() {}
 };
 
@@ -47,6 +48,7 @@ struct GLeaf : GNode {
   }
 
   virtual ~GLeaf() override {}
+  virtual void handleEvent(Event e) override {};
 };
 
 struct GNonLeaf : GNode {
@@ -59,6 +61,7 @@ struct GNonLeaf : GNode {
   GNode* second;
 
   virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out, Rect bounding_box) override;
+  virtual void handleEvent(Event e) override {}
 
   static std::optional<GNonLeaf*> create(bool split_horizontal, float split, GNode* first, GNode* second);
 

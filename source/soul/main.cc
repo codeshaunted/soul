@@ -28,10 +28,12 @@
 #include "shaders.hh"
 #include "gui.hh"
 
+#include "editor.hh"
+
 using namespace soul;
 
 int main(int argc, char** argv) {
-	auto window = Window::create(800, 600, "test");
+	auto window = Window::create(800, 600, argv[0]);
 
 	if (!window) {
 		std::cerr << "failed to open window (" << (int)window.error() 
@@ -50,34 +52,30 @@ int main(int argc, char** argv) {
 	}
 
 	auto gui = GUI::create();
-	// gui.tree = std::make_unique<GLeaf>(0xff00ff00);
-	auto leaf1 = new GLeaf(0xff2d3338);
-	auto leaf2 = new GLeaf(0xff525f68);
-	auto leaf3 = new GLeaf(0xff66869b);
-	auto node1 = GNonLeaf::create(true, 0.5, leaf1, leaf2).value();
-	auto root = GNonLeaf::create(false, 0.3, leaf3, node1).value();
-	gui.tree = root;
 
-	auto text = DrawCmd::Text::create("this is", 20.0, 200.0, 48);
-	text->append(" one ", 0xffff0000);
-	text->append("draw ", 0xff00ff00);
-	text->append("command!", 0xff0000ff);
+	Editor* ed = new Editor();
 
-	auto text2 = DrawCmd::Text::create("big text", 20.0, 250.0, 64);
-	auto text3 = DrawCmd::Text::create("bigger text", 20.0, 350.0, 240, 0x88ff00aa);
+	gui.tree = ed;
 
-	auto cmds = gui.toCmds(window.value()->getFramebufferSize()->width, window.value()->getFramebufferSize()->height);
-
-	cmds.push_back(text);
-	cmds.push_back(text2);
-	cmds.push_back(text3);
-
-	while (!window.value()->shouldClose()) {
-		renderer.value()->update(cmds);
-		auto event = window.value()->awaitEvent();
+	if (argc > 1) {
+		std::cout << "opening file: " << argv[1] << std::endl;
+		ed->openFile(argv[1]);
+	} else {
+		// what do?
 	}
 
-	for (auto cmd : cmds) delete cmd;
+	while (!window.value()->shouldClose()) {
+		// haha memory churn go brrrrr
+		auto cmds = gui.toCmds(window.value()->getFramebufferSize()->width, window.value()->getFramebufferSize()->height);
+
+		renderer.value()->update(cmds);
+
+		for (auto cmd : cmds) delete cmd;
+
+		auto event = window.value()->awaitEvent();
+		if (event) ed->handleEvent(*event);
+	}
+
 
 	delete *window;
 	delete *renderer;

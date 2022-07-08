@@ -16,6 +16,7 @@
 // limitations under the License.
 
 #include "editor.hh"
+#include "renderer.hh"
 #include "utils.hh"
 
 #include "tinyfiledialogs.h"
@@ -57,7 +58,11 @@ bool Editor::openFile(std::string_view path) {
 	
 	this->filePath = {path};
 	this->engine.clear();
-	this->engine.insertStr({0,0}, data);
+	if (!this->engine.insertStr({0,0}, data)) {
+		// this keeps failing >:( need more textengine tests
+		std::cerr << "internal error: failed to insert text when opening file" << std::endl;
+		return false;
+	}
 
 	this->cursor = {0,0};
 	this->modified = false;
@@ -111,6 +116,47 @@ bool Editor::saveAs() {
 
 	this->filePath = {result};
 	return this->saveInternal();
+}
+
+void Editor::toDrawCmds(std::vector<DrawCmd::Any *> &out, Rect bounding_box) {
+	// add background rect
+	out.push_back(new DrawCmd::Rect(
+		bounding_box.x,
+		bounding_box.y,
+		bounding_box.width,
+		bounding_box.height,
+		this->bg_color_abgr
+	));
+
+	// next, generate draw commands for each line that is visible.
+
+	// Caclulate which lines are visible
+	auto height_px = bounding_box.height;
+	// any line between this->scroll and this->scroll + height is visible.
+	// to get from a pixel scroll offset to a line, divide by this->line_height_px
+
+	unsigned first_line = this->scroll_offset / this->line_height_px;
+	unsigned last_line = (this->scroll_offset + height_px) / this->line_height_px;
+
+	auto lines_in_file = this->engine.numLines();
+
+	for (unsigned i = first_line; i <= last_line && i < lines_in_file; i++) {
+		float from_top_px = i * this->line_height_px;
+		auto from_top_of_view_px = from_top_px - this->scroll_offset;
+		auto screenspace_y_px = bounding_box.y + from_top_of_view_px;
+		auto cmd = DrawCmd::Text::create(
+			// TODO: perhaps avoid copying the string here? this code could be optimized a lot.
+			this->engine.getLine(i).value()->text,
+			bounding_box.x + this->left_margin_px,
+			screenspace_y_px,
+			this->line_height_px
+		);
+		out.push_back(cmd);
+	}
+}
+
+void Editor::handleEvent(Event e) {
+	// todo
 }
 
 }

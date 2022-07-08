@@ -51,7 +51,7 @@ tl::expected<std::vector<Line>, std::string> splitIntoLines(std::string_view tex
 	std::vector<Line> lines;
 	std::string currentLine;
 	
-	for (unsigned int i = 0; i < text.length(); i++) {
+	for (size_t i = 0; i < text.length(); i++) {
 		char c = text[i];
 		if (!iscntrl(c)) {
 			currentLine.append(1, c);
@@ -62,11 +62,13 @@ tl::expected<std::vector<Line>, std::string> splitIntoLines(std::string_view tex
 			lines.push_back(Line::from(currentLine));
 			currentLine = std::string();
 			i += 1; // skip \n
+		} else if (c == '\t') {
+			currentLine.append(1, c);
 		} else {
 			// encountered an unsupported control character!
 
 			std::stringstream message;
-			message << "unsupported control character " << std::hex << c;
+			message << "unsupported control character " << std::hex << (int)c;
 			return tl::unexpected(message.str());
 		}
 	}
@@ -184,7 +186,10 @@ std::optional<CurPos> TextEngine::insertStr(CurPos pos, std::string_view str) {
 		return std::nullopt;
 	}
 	auto new_lines = splitIntoLines(str);
-	if (!new_lines) return std::nullopt;
+	if (!new_lines) {
+		std::cerr << "textengine failed to split lines: " << new_lines.error() << std::endl;
+		return std::nullopt;
+	}
 
 	// This needs to change
 	//    line:{start}{end}

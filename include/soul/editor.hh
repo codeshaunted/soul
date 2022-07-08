@@ -18,13 +18,15 @@
 #ifndef SOUL_EDITOR_HH
 #define SOUL_EDITOR_HH
 
-#include <string_view>
 #include "text_engine.hh"
+#include "gui.hh"
+
+#include <string_view>
 #include <filesystem>
 
 namespace soul {
 
-class Editor {
+class Editor : public GNode {
 public:
 	bool openFile(std::string_view path);
 	bool save();
@@ -39,10 +41,22 @@ public:
 		this->cursor = {0,0};
 		this->modified = false;
 	}
+
+	virtual ~Editor() override {}
+	virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out, Rect bounding_box) override;
+	virtual void handleEvent(Event e) override;
+
+	uint32_t bg_color_abgr = 0xFF333333;
+	uint32_t text_color_abgr = 0xFFEEEEEE;
+	uint16_t line_height_px = 32;
+	uint16_t left_margin_px = 10;
+
+	float scroll_offset = 0.0;
+
 private:
-	CurPos cursor;
+	CurPos cursor = {0,0};
 	TextEngine engine;
-	bool modified;
+	bool modified = false;
 	std::optional<std::filesystem::path> filePath;
 
 	/**
