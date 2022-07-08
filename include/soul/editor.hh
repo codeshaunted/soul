@@ -43,7 +43,7 @@ public:
 	}
 
 	virtual ~Editor() override {}
-	virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out, Rect bounding_box) override;
+	virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out) override;
 	virtual void handleEvent(Event e) override;
 
 	uint32_t bg_color_abgr = 0xFF333333;
@@ -60,6 +60,11 @@ private:
 	TextEngine engine;
 	bool modified = false;
 	std::optional<std::filesystem::path> filePath;
+
+	uint32_t firstVisibleLine();
+	uint32_t lastVisibleLine();
+
+	void ensureCursorVisible();
 
 	/**
 	 * just returns false if filepath isn't set

@@ -51,7 +51,10 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	auto gui = GUI::create();
+	auto gui = GUI::create(
+		window.value()->getFramebufferSize()->width,
+		window.value()->getFramebufferSize()->height
+	);
 
 	Editor* ed = new Editor();
 
@@ -66,7 +69,7 @@ int main(int argc, char** argv) {
 
 	while (!window.value()->shouldClose()) {
 		// haha memory churn go brrrrr
-		auto cmds = gui.toCmds(window.value()->getFramebufferSize()->width, window.value()->getFramebufferSize()->height);
+		auto cmds = gui.toCmds();
 
 		renderer.value()->update(cmds);
 

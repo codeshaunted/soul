@@ -25,7 +25,7 @@
 using namespace soul;
 
 TEST_CASE("simple GUI tree") {
-  auto gui = GUI::create();
+  auto gui = GUI::create(100, 100);
   auto red = new GLeaf(0xff0000ff);
   auto blue = new GLeaf(0xffff0000);
   auto green = new GLeaf(0xff00ff00);
@@ -33,7 +33,7 @@ TEST_CASE("simple GUI tree") {
   auto node2 = GNonLeaf::create(false, 0.5, node1, blue).value();
   gui.tree = node2;
 
-  auto tris = gui.toCmds(100, 100);
+  auto tris = gui.toCmds();
   
   // constexpr Rect expected[] = {
   //   {0.f, 0.f, 0.f, 0xff0000ff},

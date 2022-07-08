@@ -122,25 +122,28 @@ bool Editor::saveAs() {
 	return this->saveInternal();
 }
 
-void Editor::toDrawCmds(std::vector<DrawCmd::Any *> &out, Rect bounding_box) {
+uint32_t Editor::firstVisibleLine() {
+	return this->scroll_offset_y / this->line_height_px;
+}
+
+uint32_t Editor::lastVisibleLine() {
+	return (this->scroll_offset_y + this->bounding_box.height) / this->line_height_px;
+}
+
+void Editor::toDrawCmds(std::vector<DrawCmd::Any *> &out) {
 	// add background rect
 	out.push_back(new DrawCmd::Rect(
-		bounding_box.x,
-		bounding_box.y,
-		bounding_box.width,
-		bounding_box.height,
+		this->bounding_box.x,
+		this->bounding_box.y,
+		this->bounding_box.width,
+		this->bounding_box.height,
 		this->bg_color_abgr
 	));
 
 	// next, generate draw commands for each line that is visible.
 
-	// Caclulate which lines are visible
-	auto height_px = bounding_box.height;
-	// any line between this->scroll and this->scroll + height is visible.
-	// to get from a pixel scroll offset to a line, divide by this->line_height_px
-
-	unsigned first_line = this->scroll_offset_y / this->line_height_px;
-	unsigned last_line = (this->scroll_offset_y + height_px) / this->line_height_px;
+	unsigned first_line = this->firstVisibleLine();
+	unsigned last_line = this->lastVisibleLine();
 
 	auto lines_in_file = this->engine.numLines();
 
@@ -178,6 +181,15 @@ void Editor::toDrawCmds(std::vector<DrawCmd::Any *> &out, Rect bounding_box) {
 	}
 }
 
+void Editor::ensureCursorVisible() {
+	if (this->cursor.first < this->firstVisibleLine()) {
+		this->scroll_offset_y = this->cursor.first * this->line_height_px;
+	} else if (this->cursor.first >= this->lastVisibleLine()) {
+		// lvl is (this->scroll_offset_y + this->bounding_box.height) / this->line_height_px
+		this->scroll_offset_y = (this->cursor.first + 1) * this->line_height_px - this->bounding_box.height;
+	}
+}
+
 void Editor::handleEvent(Event e) {
 	// yep this is kinda yucky but the inner code isn't too bad at least?
 	std::visit([this](auto&& r){
@@ -201,24 +213,43 @@ void Editor::handleEvent(Event e) {
 				switch (r.key) {
 					case GLFW_KEY_UP: {
 						this->cursor.first = this->cursor.first <= 0 ? 0 : this->cursor.first - 1;
+						// ensure we aren't beyond the end of the new line
 						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
 						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second;
+						this->ensureCursorVisible();
 						break;
 					}
 					case GLFW_KEY_DOWN: {
-						this->cursor.first =
-							this->cursor.first >= this->engine.numLines() ? this->engine.numLines() : this->cursor.first + 1;
-						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
-						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second;
+						if (this->cursor.first < this->engine.numLines() - 1) {
+							this->cursor.first++;
+							// ensure we aren't beyond the end of the new line
+							auto max = this->engine.getLine(this->cursor.first).value()->text.length();
+							this->cursor.second = this->cursor.second >= max ? max : this->cursor.second;
+						} else {
+							auto max = this->engine.getLine(this->cursor.first).value()->text.length();
+							this->cursor.second = max;
+						}
+						this->ensureCursorVisible();
 						break;
 					}
 					case GLFW_KEY_LEFT: {
-						this->cursor.second = this->cursor.second <= 0 ? 0 : this->cursor.second - 1;
+						if (this->cursor.second == 0 && this->cursor.first != 0) {
+							this->cursor.first = this->cursor.first - 1;
+							this->cursor.second = this->engine.getLine(this->cursor.first).value()->text.length();
+						} else {
+							this->cursor.second = this->cursor.second <= 0 ? 0 : this->cursor.second - 1;
+							this->ensureCursorVisible();
+						}
 						break;
 					}
 					case GLFW_KEY_RIGHT: {
 						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
-						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second + 1;
+						if (this->cursor.second >= max && this->cursor.first < this->engine.numLines() - 1) {
+							this->cursor = {this->cursor.first + 1, 0};
+						} else {
+							this->cursor.second++;
+						}
+						this->ensureCursorVisible();
 						break;
 					}
 				}

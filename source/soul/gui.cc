@@ -28,11 +28,17 @@ GUI GUI::create() {
 	return GUI();
 }
 
-void leavesToRectsRec(
-	std::vector<std::unique_ptr<DrawCmd::Any>>& out,
-	Rect& current,
-	GNode& node
-);
+GUI GUI::create(unsigned int window_width, unsigned int window_height) {
+	GUI ret;
+	ret.setDimensions(window_width, window_height);
+	return ret;
+}
+
+void GUI::setDimensions(unsigned int window_width, unsigned int window_height) {
+	this->root_bounding_box = Rect {
+		0, 0, (float)window_width, (float)window_height, 0xff000000
+	};
+}
 
 uint16_t addVert(std::vector<Vertex>& vec, Vertex to_add) {
 	// TODO: don't add duplicate verts?
@@ -58,53 +64,57 @@ GNonLeaf::GNonLeaf(bool split_horizontal, float split, GNode* first, GNode* seco
 	this->second = second;
 }
 
-std::vector<DrawCmd::Any*> GUI::toCmds(unsigned int window_width, unsigned int window_height) {
-	Rect root {0.f, 0.f, static_cast<float>(window_width), static_cast<float>(window_height), 0xff000000};
+std::vector<DrawCmd::Any*> GUI::toCmds() {
+	// make sure dimensions are correct
+	this->tree->updateBoundingBox(this->root_bounding_box);
+
 	std::vector<DrawCmd::Any*> ret;
-	// leavesToRectsRec(ret, root, *this->tree);
-	this->tree->toDrawCmds(ret, root);
+	this->tree->toDrawCmds(ret);
 	return ret;
 }
 
-void GLeaf::toDrawCmds(std::vector<DrawCmd::Any*> &out, Rect bounding_box) {
+void GLeaf::toDrawCmds(std::vector<DrawCmd::Any*> &out) {
 	// current.color = node_leaf.color;
 	out.push_back(new DrawCmd::Rect(
-		bounding_box.x,
-		bounding_box.y,
-		bounding_box.width,
-		bounding_box.height,
+		this->bounding_box.x,
+		this->bounding_box.y,
+		this->bounding_box.width,
+		this->bounding_box.height,
 		this->color
 	));
 }
 
-void GNonLeaf::toDrawCmds(std::vector<DrawCmd::Any*> &out, Rect bounding_box) {
+void GNonLeaf::updateBoundingBox(Rect new_box) {
 	// calculate Rects for each child, and recurse them.
 	Rect r1, r2;
 	if (this->horizontal) {
-		r1.width = bounding_box.width;
-		r2.width = bounding_box.width;
-		r1.x = bounding_box.x;
-		r2.x = bounding_box.x;
-		r1.y = bounding_box.y;
-		float height1 = this->split_point * bounding_box.height;
+		r1.width = new_box.width;
+		r2.width = new_box.width;
+		r1.x = new_box.x;
+		r2.x = new_box.x;
+		r1.y = new_box.y;
+		float height1 = this->split_point * new_box.height;
 		r1.height = height1;
-		r2.height = bounding_box.height - height1;
-		r2.y = bounding_box.y + height1;
-		this->first->toDrawCmds(out, r1);
-		this->second->toDrawCmds(out, r2);
+		r2.height = new_box.height - height1;
+		r2.y = new_box.y + height1;
 	} else {
-		r1.height = bounding_box.height;
-		r2.height = bounding_box.height;
-		r1.y = bounding_box.y;
-		r2.y = bounding_box.y;
-		r1.x = bounding_box.x;
-		float width1 = this->split_point * bounding_box.height;
+		r1.height = new_box.height;
+		r2.height = new_box.height;
+		r1.y = new_box.y;
+		r2.y = new_box.y;
+		r1.x = new_box.x;
+		float width1 = this->split_point * new_box.height;
 		r1.width = width1;
-		r2.width = bounding_box.width - width1;
-		r2.x = bounding_box.x + width1;
-		this->first->toDrawCmds(out, r1);
-		this->second->toDrawCmds(out, r2);
+		r2.width = new_box.width - width1;
+		r2.x = new_box.x + width1;
 	}
+	this->first->updateBoundingBox(r1);
+	this->second->updateBoundingBox(r2);
+}
+
+void GNonLeaf::toDrawCmds(std::vector<DrawCmd::Any*> &out) {
+	this->first->toDrawCmds(out);
+	this->second->toDrawCmds(out);
 }
 
 }
