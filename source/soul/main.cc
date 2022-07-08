@@ -56,15 +56,26 @@ int main(int argc, char** argv) {
 		window.value()->getFramebufferSize()->height
 	);
 
-	Editor* ed = new Editor();
+	
 
-	gui.tree = ed;
+	if (argc == 2) {
+		Editor* ed = new Editor();
 
-	if (argc > 1) {
+		gui.tree = ed;
 		std::cout << "opening file: " << argv[1] << std::endl;
 		ed->openFile(argv[1]);
-	} else {
-		// what do?
+	} else if (argc == 3) {
+		Editor* ed = new Editor();
+		std::cout << "opening file: " << argv[1] << std::endl;
+		ed->openFile(argv[1]);
+		ed->bg_color_abgr = 0xff221111;
+
+		Editor* ed2 = new Editor();
+		std::cout << "opening file: " << argv[2] << std::endl;
+		ed2->openFile(argv[2]);
+		ed2->bg_color_abgr = 0xff112211;
+
+		gui.tree = GNonLeaf::create(true, 0.5, ed, ed2).value();
 	}
 
 	while (!window.value()->shouldClose()) {
@@ -76,7 +87,7 @@ int main(int argc, char** argv) {
 		for (auto cmd : cmds) delete cmd;
 
 		auto event = window.value()->awaitEvent();
-		if (event) ed->handleEvent(*event);
+		if (event) gui.tree->handleEvent(*event);
 	}
 
 

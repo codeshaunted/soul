@@ -68,7 +68,7 @@ struct GNonLeaf : GNode {
   GNode* second;
 
   virtual void toDrawCmds(std::vector<DrawCmd::Any*>& out) override;
-  virtual void handleEvent(Event e) override {}
+  virtual void handleEvent(Event e) override;
   virtual void updateBoundingBox(Rect new_box) override;
 
   static std::optional<GNonLeaf*> create(bool split_horizontal, float split, GNode* first, GNode* second);

@@ -64,6 +64,11 @@ GNonLeaf::GNonLeaf(bool split_horizontal, float split, GNode* first, GNode* seco
 	this->second = second;
 }
 
+void GNonLeaf::handleEvent(Event e) {
+	this->first->handleEvent(e);
+	this->second->handleEvent(e);
+}
+
 std::vector<DrawCmd::Any*> GUI::toCmds() {
 	// make sure dimensions are correct
 	this->tree->updateBoundingBox(this->root_bounding_box);
