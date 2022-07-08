@@ -16,6 +16,7 @@
 // limitations under the License.
 
 #include "editor.hh"
+#include "events.hh"
 #include "renderer.hh"
 #include "utils.hh"
 
@@ -25,6 +26,8 @@
 #include <iostream>
 #include <ostream>
 #include <optional>
+
+#define SCROLL_MULTIPLIER -10.0
 
 namespace soul {
 
@@ -135,19 +138,20 @@ void Editor::toDrawCmds(std::vector<DrawCmd::Any *> &out, Rect bounding_box) {
 	// any line between this->scroll and this->scroll + height is visible.
 	// to get from a pixel scroll offset to a line, divide by this->line_height_px
 
-	unsigned first_line = this->scroll_offset / this->line_height_px;
-	unsigned last_line = (this->scroll_offset + height_px) / this->line_height_px;
+	unsigned first_line = this->scroll_offset_y / this->line_height_px;
+	unsigned last_line = (this->scroll_offset_y + height_px) / this->line_height_px;
 
 	auto lines_in_file = this->engine.numLines();
 
 	for (unsigned i = first_line; i <= last_line && i < lines_in_file; i++) {
 		float from_top_px = i * this->line_height_px;
-		auto from_top_of_view_px = from_top_px - this->scroll_offset;
+		auto from_top_of_view_px = from_top_px - this->scroll_offset_y;
 		auto screenspace_y_px = bounding_box.y + from_top_of_view_px;
+		auto screenspace_x_px = bounding_box.x + this->left_margin_px - this->scroll_offset_x;
 		auto cmd = DrawCmd::Text::create(
 			// TODO: perhaps avoid copying the string here? this code could be optimized a lot.
 			this->engine.getLine(i).value()->text,
-			bounding_box.x + this->left_margin_px,
+			screenspace_x_px,
 			screenspace_y_px,
 			this->line_height_px
 		);
@@ -156,7 +160,27 @@ void Editor::toDrawCmds(std::vector<DrawCmd::Any *> &out, Rect bounding_box) {
 }
 
 void Editor::handleEvent(Event e) {
-	// todo
+	// yep this is kinda yucky but the inner code isn't too bad at least?
+	std::visit([this](auto&& r){
+		using T = std::decay_t<decltype(r)>;
+		if constexpr (std::is_same_v<T, ScrollEvent>) {
+			this->scroll_offset_y += SCROLL_MULTIPLIER * r.y;
+			if (this->scroll_offset_y < 0) {
+				// it would be nice to have some kind of animation for this, but that needs
+				// a way to request a rerender which we don't have yet. this works for now.
+				this->scroll_offset_y = 0;
+			} else if (this->scroll_offset_y > (this->engine.numLines() + 1) * this->line_height_px) {
+				this->scroll_offset_y = (this->engine.numLines() + 1) * this->line_height_px;
+			}
+
+			this->scroll_offset_x += SCROLL_MULTIPLIER * r.x;
+			if (this->scroll_offset_x < 0) {
+				this->scroll_offset_x = 0;
+			}
+		} else {
+
+		}
+	}, e);
 }
 
 }

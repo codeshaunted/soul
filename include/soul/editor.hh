@@ -51,7 +51,8 @@ public:
 	uint16_t line_height_px = 32;
 	uint16_t left_margin_px = 10;
 
-	float scroll_offset = 0.0;
+	float scroll_offset_y = 0.0;
+	float scroll_offset_x = 0.0;
 
 private:
 	CurPos cursor = {0,0};
