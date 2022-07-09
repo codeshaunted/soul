@@ -41,8 +41,6 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	std::cerr << "successfully created window!!!" << std::endl;
-
 	auto renderer = Renderer::create(*window);
 
 	if (!renderer) {

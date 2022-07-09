@@ -212,10 +212,14 @@ void Editor::handleEvent(Event e) {
 			if (r.action == KeyAction::PRESS || r.action == KeyAction::REPEAT) {
 				switch (r.key) {
 					case GLFW_KEY_UP: {
-						this->cursor.first = this->cursor.first <= 0 ? 0 : this->cursor.first - 1;
-						// ensure we aren't beyond the end of the new line
-						auto max = this->engine.getLine(this->cursor.first).value()->text.length();
-						this->cursor.second = this->cursor.second >= max ? max : this->cursor.second;
+						if (this->cursor.first > 0) {
+							this->cursor.first--;
+							// ensure we aren't beyond the end of the new line
+							auto max = this->engine.getLine(this->cursor.first).value()->text.length();
+							this->cursor.second = this->cursor.second >= max ? max : this->cursor.second;
+						} else {
+							this->cursor.second = 0; 
+						}
 						this->ensureCursorVisible();
 						break;
 					}
