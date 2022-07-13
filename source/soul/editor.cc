@@ -106,7 +106,7 @@ bool Editor::save() {
 
 bool Editor::saveAs() {
 	char const* const defaultPath =
-		this->filePath ? this->filePath->c_str() : "";
+		this->filePath ? (const char*)this->filePath->c_str() : "";
 	
 	auto result = tinyfd_saveFileDialog(
 		"Save file",

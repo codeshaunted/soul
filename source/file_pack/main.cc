@@ -41,30 +41,30 @@ int main(int argc, char** argv) {
 		
 		for (; file_data.c_str()[replace_end_position] != FILE_PACK_END_CHARACTER; replace_end_position++);
 
-		std::string file_file_path = file_data.substr(replace_start_position + 2, replace_end_position - replace_start_position - 2);
-		std::ifstream file_file(files_directory_path + "/" + file_file_path, std::ios::in | std::ios::binary);
-		std::string file_file_array = "";
+		std::string file_path = file_data.substr(replace_start_position + 2, replace_end_position - replace_start_position - 2);
+		std::ifstream file(files_directory_path + "/" + file_path, std::ios::in | std::ios::binary);
+		std::string file_array = "";
 
-		if (file_file.good()) {
-			file_file.seekg(0, std::ios::end);
-			size_t file_file_size = file_file.tellg();
-			file_file.seekg(0, std::ios::beg);
+		if (file.good()) {
+			file.seekg(0, std::ios::end);
+			size_t file_size = file.tellg();
+			file.seekg(0, std::ios::beg);
 
 
-			for (size_t i = 0; i < file_file_size; i++) {
-				unsigned char byte = file_file.get();
+			for (size_t i = 0; i < file_size; i++) {
+				unsigned char byte = file.get();
 
 				char hex_byte[5];
 				sprintf(hex_byte, "0x%02x", byte);
 
-				file_file_array += hex_byte;
-				if (i != file_file_size - 1) file_file_array += ", ";
+				file_array += hex_byte;
+				if (i != file_size - 1) file_array += ", ";
 			}
 		}
 
-		file_file.close();
+		file.close();
 
-		file_data.replace(replace_start_position, replace_end_position - replace_start_position + 1, file_file_array);
+		file_data.replace(replace_start_position, replace_end_position - replace_start_position + 1, file_array);
 	}
 	
 	std::ofstream output_file(output_file_path);

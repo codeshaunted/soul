@@ -33,7 +33,7 @@ file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/shaders.cc")
 add_custom_command(
     OUTPUT shaders.cc
     COMMAND file_pack ${CMAKE_SOURCE_DIR}/source/soul/shaders.cc.in ${CMAKE_CURRENT_BINARY_DIR}/shaders.cc ${CMAKE_BINARY_DIR}/shaders
-    DEPENDS shaders.cc.in)
+    DEPENDS shaders.cc.in ${SOUL_SHADER_BINARIES})
 
 # font packing
 file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/fonts.cc")
