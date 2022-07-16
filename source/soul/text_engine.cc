@@ -268,10 +268,11 @@ std::optional<CurPos> TextEngine::deleteChar(CurPos pos) {
 		}
 		// append to previous
 		auto& prev_text_r = this->lines[pos.first - 1].text;
+		auto prev_len = prev_text_r.length();
 		prev_text_r.append(this->lines[pos.first].text);
 		// delete line
 		this->lines.erase(this->lines.begin() + pos.first);
-		return CurPos{pos.first - 1, prev_text_r.length()};
+		return CurPos{pos.first - 1, prev_len};
 	} else {
 		this->lines[pos.first].text.erase(pos.second - 1, 1);
 		return CurPos{pos.first, pos.second - 1};
