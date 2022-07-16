@@ -256,7 +256,43 @@ void Editor::handleEvent(Event e) {
 						this->ensureCursorVisible();
 						break;
 					}
+					case GLFW_KEY_ENTER:
+					case GLFW_KEY_KP_ENTER: {
+						auto p = this->engine.insert(this->cursor, '\n');
+						if (p) {
+							this->cursor = *p;
+						} else {
+							std::cerr << "failed to insert at (" << this->cursor.first << "," << this->cursor.second << ")" << std::endl;
+						}
+						break;
+					}
+					// This doesn't work yet because you can't insert \t.
+					// I think we need better tabs/spaces handling for that,
+					// which shouldn't be too hard once we have a config system.
+					// case GLFW_KEY_TAB: {
+					// 	if (auto p = this->engine.insert(this->cursor, '\t')) {
+					// 		this->cursor = *p;
+					// 	} else {
+					// 		std::cerr << "failed to insert at (" << this->cursor.first << "," << this->cursor.second << ")" << std::endl;
+					// 	}
+					// 	break;
+					// }
+					case GLFW_KEY_BACKSPACE: {
+						if (auto p = this->engine.deleteChar(this->cursor)) {
+							this->cursor = *p;
+						} else {
+							std::cerr << "failed to delete at (" << this->cursor.first << "," << this->cursor.second << ")" << std::endl;
+						}
+						break;
+					}
 				}
+			}
+		} else if constexpr (std::is_same_v<T, TextEvent>) {
+			auto p = this->engine.insert(this->cursor, r.character);
+			if (p) {
+				this->cursor = *p;
+			} else {
+				std::cerr << "failed to insert at (" << this->cursor.first << "," << this->cursor.second << ")" << std::endl;
 			}
 		} else {
 
