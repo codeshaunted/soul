@@ -93,5 +93,3 @@ int main(int argc, char** argv) {
 	delete *renderer;
 	Window::terminateBackend();
 }
-
-#undef FT_TRY
